@@ -13,7 +13,6 @@ spec:
       app: longhorn-manager
   template:
     spec:
-      volumeMounts:
-       - name: longhorn
-         mountPath: /var/lib/longhorn/
-         mountPropagation: Bidirectional
+      - name: longhorn
+        hostPath:
+          path: /opt/storage/longhorn

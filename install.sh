@@ -1,9 +1,11 @@
 #!/bin/bash
-DATA_D="/mnt/storage/k3s/data"
-L_DATA_D="/mnt/storage/k3s/local"
-ARGO_D="/mnt/storage/argocd"
+DATA_D="/opt/storage/k3s/data"
+L_DATA_D="/opt/storage/k3s/local"
+ARGO_D="/mnt/storage/k3s/argocd"
 SERVER=false
 AGENT=false
+APPLY=false
+G_URL="https://github.com/oonray/k8sCore"
 
 function dirs(){
     if [ -d "/mnt/storage" ]
@@ -42,16 +44,17 @@ function server(){
         --node-label type=server \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
-        --node-label platform=$(uname -m) 
+        --node-label platform=$(uname -m)
 }
 
 
-while getopts "saht:m:" opt; do
+while getopts "sahtk:m:" opt; do
     case "$opt" in
         m) MASTER=$OPTARG ;;
         t) TOKEN=$OPTARG ;;
         s) SERVER=true ;;
         a) AGENT=true ;;
+        k) APPLY=true ;;
         h) ;&
         *) help;;
     esac
@@ -61,6 +64,10 @@ if $SERVER
 then
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     server $TOKEN
+    if $?
+    then 
+        kubectl apply -k $G_URL
+    fi
 fi
 if $CLIENT
 then

@@ -15,4 +15,4 @@ spec:
             - "argocd-server"
             - "--insecure"
             - "--staticassets"
-            - "/mnt/storage/argocd"
+            - "/opt/storage/k3s/argocd"
