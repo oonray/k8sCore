@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app: longhorn-manager
+  name: longhorn-manager
+  namespace: longhorn-system
+spec:
+  selector:
+    matchLabels:
+      app: longhorn-manager
+  template:
+    spec:
+      volumeMounts:
+       - name: longhorn
+         mountPath: /var/lib/longhorn/
+         mountPropagation: Bidirectional

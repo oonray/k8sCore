@@ -1,0 +1,14 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: cluster-system
+  labels:
+    name: cluster-system
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: argocd
+  labels:
+    name: argocd
