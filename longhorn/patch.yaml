@@ -6,7 +6,6 @@ metadata:
     app.kubernetes.io/instance: longhorn
     app: longhorn-manager
   name: longhorn-manager
-  namespace: longhorn-system
 spec:
   selector:
     matchLabels:
