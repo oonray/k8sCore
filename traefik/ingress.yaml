@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-ingress
+  namespace: kube-system
+spec:
+  tls:
+    secretName: traefik-tls
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`traefik.kube`)
+      middlewares:
+        - name: basic-auth
+          namespace: middleware
+      services:
+        - name: api@internal
+          kind: TraefikService

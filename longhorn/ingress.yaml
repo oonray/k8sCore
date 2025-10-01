@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: longhorn-ingress
+  namespace: longhorn-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`longhorn.kube`)
+      middlewares:
+        - name: basic-auth
+          namespace: middleware
+      services:
+        - name: longhorn-frontend
+          namespace: longhorn-system
+          scheme: http
+          port: 80
