@@ -1,6 +1,6 @@
 #!/bin/bash
-DATA_D="/opt/storage/k3s/data"
-L_DATA_D="/opt/storage/k3s/local"
+DATA_D="/mnt/storage/k3s/data"
+L_DATA_D="/mnt/storage/k3s/local"
 ARGO_D="/mnt/storage/k3s/argocd"
 SERVER=false
 AGENT=false

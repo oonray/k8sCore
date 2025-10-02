@@ -4,4 +4,7 @@ resources:
   - https://raw.githubusercontent.com/longhorn/longhorn/v1.8.1/deploy/longhorn.yaml
 patches:
   - path: ./patch.yaml
+    target:
+      kind: DaemonSet
+      name: longhorn-manager
 
