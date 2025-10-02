@@ -8,4 +8,4 @@ spec:
      volumes:
       - name: longhorn
         hostPath:
-          path: /mnt/storage/longhorn
+          path: /mnt/storage/longhorn/data

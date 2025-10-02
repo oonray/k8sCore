@@ -2,6 +2,7 @@
 DATA_D="/mnt/storage/k3s/data"
 L_DATA_D="/mnt/storage/k3s/local"
 ARGO_D="/mnt/storage/k3s/argocd"
+LONG_D="/mnt/storage/longhorn/data" #69
 SERVER=false
 AGENT=false
 APPLY=false
@@ -12,6 +13,7 @@ function dirs(){
     then
         sudo mkdir -p $DATA_D
         sudo mkdir -p $L_DATA_D
+        sudo mkdir -p $LONG_D #69
         if $SERVER
         then
             sudo mkdir -p $ARGO_D
