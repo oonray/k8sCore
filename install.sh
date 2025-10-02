@@ -62,6 +62,7 @@ done
 if $AGENT && $SERVER; then echo "Cannot be both server and agent"; help; fi
 if $SERVER
 then
+    echo "Installing Server"
     echo "Token: $TOKEN"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     server $TOKEN
@@ -72,6 +73,8 @@ then
 fi
 if $CLIENT
 then
+    echo "Installing Agent"
+    echo "Token: $TOKEN"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     if [ -z $MASTER ]; then echo "Needs master"; help; fi
     agent $TOKEN $MASTER
