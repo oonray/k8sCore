@@ -65,7 +65,7 @@ then
     echo "Installing Server"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     server $TOKEN
-    if $?
+    if $APPLY
     then 
         kubectl apply -k $G_URL
     fi
