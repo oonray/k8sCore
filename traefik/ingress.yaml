@@ -10,7 +10,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`traefik.kube`)
+      match: Host(`traefik.kube.internal`)
       middlewares:
         - name: basic-auth
           namespace: middleware

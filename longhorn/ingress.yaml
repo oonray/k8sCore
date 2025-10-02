@@ -8,7 +8,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`longhorn.kube`)
+      match: Host(`longhorn.kube.internal`)
       middlewares:
         - name: basic-auth
           namespace: middleware
