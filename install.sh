@@ -10,11 +10,11 @@ G_URL="https://github.com/oonray/k8sCore"
 function dirs(){
     if [ -d "/mnt/storage" ]
     then
-        mkdir -p $DATA_D
-        mkdir -p $L_DATA_D
+        sudo mkdir -p $DATA_D
+        sudo mkdir -p $L_DATA_D
         if $SERVER
         then
-            mkdir -p $ARGO_D
+            sudo mkdir -p $ARGO_D
         fi
     fi
 }
@@ -63,7 +63,6 @@ if $AGENT && $SERVER; then echo "Cannot be both server and agent"; help; fi
 if $SERVER
 then
     echo "Installing Server"
-    echo "Token: $TOKEN"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     server $TOKEN
     if $?
@@ -74,7 +73,6 @@ fi
 if $CLIENT
 then
     echo "Installing Agent"
-    echo "Token: $TOKEN"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     if [ -z $MASTER ]; then echo "Needs master"; help; fi
     agent $TOKEN $MASTER
