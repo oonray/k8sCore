@@ -62,6 +62,7 @@ done
 if $AGENT && $SERVER; then echo "Cannot be both server and agent"; help; fi
 if $SERVER
 then
+    echo "Token: $TOKEN"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
     server $TOKEN
     if $?
