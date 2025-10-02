@@ -70,7 +70,7 @@ then
         kubectl apply -k $G_URL
     fi
 fi
-if $CLIENT
+if $AGENT
 then
     echo "Installing Agent"
     if [ -z $TOKEN ]; then echo "Needs token"; help; fi
