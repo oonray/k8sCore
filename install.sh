@@ -48,7 +48,7 @@ function server(){
 }
 
 
-while getopts "sahtk:m:" opt; do
+while getopts "saht:k:m:" opt; do
     case "$opt" in
         m) MASTER=$OPTARG ;;
         t) TOKEN=$OPTARG ;;
