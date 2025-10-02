@@ -1,15 +1,8 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  labels:
-    app.kubernetes.io/name: longhorn
-    app.kubernetes.io/instance: longhorn
-    app: longhorn-manager
   name: longhorn-manager
 spec:
-  selector:
-    matchLabels:
-      app: longhorn-manager
   template:
     spec:
       - name: longhorn
