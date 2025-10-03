@@ -1,8 +1,8 @@
 param {
     [string]$startup='Automatic'
     [string]$status='Running'
-    [string]$master
-    [string]$token
+    [string]$master=''
+    [string]$token=''
     [bool]$ssh
     [bool]$kube
 }
