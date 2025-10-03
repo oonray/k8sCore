@@ -22,6 +22,7 @@ $SetPowershell = @{
 $url=@{
     containerd="https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/hostprocess/Install-Containerd.ps1"
     prepare="https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/hostprocess/PrepareNode.ps1"
+    pwsh="https://github.com/PowerShell/PowerShell/releases/download/v7.5.3/PowerShell-7.5.3-win-x64.msi"
 }
 
 if($ssh){
@@ -37,6 +38,8 @@ if($ssh){
     Add-Content -Force -Path $config -Value "PubkeyAuthentication yes"
 
     New-ItemProperty @SetPowershell
+
+    msiexec.exe /package https://github.com/PowerShell/PowerShell/releases/download/v7.5.3/PowerShell-7.5.3-win-x64.msi /quiet ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1
 
    if (!(Get-NetFirewallRule -Name "sshd" -ErrorAction SilentlyContinue)) {
         New-NetFirewallRule -Name sshd -DisplayName 'SSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
