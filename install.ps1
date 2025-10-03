@@ -1,11 +1,12 @@
-param {
-    [string]$startup='Automatic'
-    [string]$status='Running'
-    [string]$master=''
-    [string]$token=''
-    [bool]$ssh
-    [bool]$kube
-}
+param (
+    [string]$startup='Automatic',
+    [string]$key='sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIGTCxFD2UzUYYWAuDnFzwMmeWsVkPZLNfObG3hJZ4GuKAAAABHNzaDo=',
+    [string]$status='Running',
+    [string]$master='',
+    [string]$token='',
+    [switch]$ssh,
+    [switch]$kube
+)
 
 $url=@{
     containerd="https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/hostprocess/Install-Containerd.ps1"
@@ -14,9 +15,13 @@ $url=@{
 
 if($ssh){
     Set-Service sshd -StartupType $startup -Status $status
-    Set-Service ssh-agent -StartupType $startup -Status $running
+    Set-Service ssh-agent -StartupType $startup -Status $status
 
-    New-NetFirewallRule -Name sshd -DisplayName 'SSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+    powershell Add-Content -Force -Path $env:ProgramData\ssh\administrators_authorized_keys -Value '$authorizedKey';icacls.exe "$env:ProgramData\ssh\administrators_authorized_keys" /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
+
+   if (!(Get-NetFirewallRule -Name "sshd" -ErrorAction SilentlyContinue)) {
+        New-NetFirewallRule -Name sshd -DisplayName 'SSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+    }
 }
 
 if($kube){
