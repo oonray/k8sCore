@@ -6,7 +6,11 @@ param (
     [string]$token,
     [switch]$ssh,
     [switch]$pwsh,
-    [switch]$kube
+    [switch]$kube,
+    [switch]$vim,
+    [switch]$winget,
+    [switch]$install,
+    [switch]$all
 )
 
 $config = @{
@@ -118,9 +122,26 @@ $url=@{
     pwsh="https://github.com/PowerShell/PowerShell/releases/download/v7.5.3/PowerShell-7.5.3-win-x64.msi"
 }
 
-if($pwsh){
-    iwr -OutFile pwsh.msi $url.pwsh
-    msiexec.exe /package pwsh.msi /quiet ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1
+function InstallWinget(){
+    $progressPreference = 'silentlyContinue'
+    Write-Host "Installing WinGet PowerShell module from PSGallery..."
+    Install-PackageProvider -Name NuGet -Force | Out-Null
+    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
+    Write-Host "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
+    Repair-WinGetPackageManager -AllUsers
+    Write-Host "Done."
+
+}
+
+if($winget -Or $install -Or $all){
+    installWinget
+}
+
+if($pwsh -Or $install -Or $all){
+    if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
+        installWinget
+    }
+    winget install pwsh
 
     Set-Content -Force -Path $config.profile.path -Value $config.profile.data
 
@@ -128,15 +149,17 @@ if($pwsh){
     New-ItemProperty @config:powershell
 }
 
-if($ssh){
-    mkdir $env:USERPROFILE\.ssh\
-    ssh-add $env:USERPROFILE\.ssh\id_ecdsa
+if($ssh -Or $install -Or $all){
+    mkdir "$env:USERPROFILE\.ssh\"
+    ssh-keygen -t ecdsa -f "$env:USERPROFILE\.ssh\id_ecdsa"
+    ssh-add "$env:USERPROFILE\.ssh\id_ecdsa"
 
     Set-Service sshd -StartupType $startup -Status $status
     Set-Service ssh-agent -StartupType $startup -Status $status
 
     Add-Content -Force -Path $admin_authorized_keys -Value "$key"
     Add-Content -Force -Path $authorized_keys -Value "$key"
+
     icacls.exe $admin_authorized_keys /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
 
     Set-Content -Force -Path $config.path -Value $config.data
@@ -148,7 +171,7 @@ if($ssh){
     }
 }
 
-if($kube){
+if($kube -Or $all){
     iex (iwr -UseBasicParsing $url.containerd)
     iex (iwr -UseBasicParsing $url.prepare)
 
@@ -163,4 +186,11 @@ if($kube){
     else{
         Write-Host "Must Specify Master addr"
     }
+}
+
+if($vim -Or $install -Or $all){
+    if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
+        installWinget
+    }
+    winget install neovim
 }
