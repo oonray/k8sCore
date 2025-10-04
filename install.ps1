@@ -107,6 +107,7 @@ $($PSStyle.Foreground.Cyan)PS$($PSStyle.Foreground.White) $($executionContext.Se
 }
 '@
 }
+}
 
 $admin_authorized_keys="$env:ProgramData\ssh\administrators_authorized_keys"
 $authorized_keys="$env:USERPROFILE\.ssh\authorized_keys"
