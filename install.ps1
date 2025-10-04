@@ -1,22 +1,22 @@
 param (
-    [Parameter(HelpMessage="Set Startup",ParameterSetName="startup")]
+    [Parameter(HelpMessage="Set Startup")]
     [string]$startup='Automatic',
-    [Parameter(HelpMessage="SSH key to use",ParameterSetName="key")]
+    [Parameter(HelpMessage="SSH key to use")]
     [Alias("k")]
     [string]$key='sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIGTCxFD2UzUYYWAuDnFzwMmeWsVkPZLNfObG3hJZ4GuKAAAABHNzaDo=',
     [Parameter(HelpMessage="Status of the ssh processes",ParameterSetName="status")]
     [string]$status='Running',
-    [Parameter(HelpMessage="join hostname",ParameterSetName="master")]
+    [Parameter(HelpMessage="join hostname")]
     [Alias("m")]
     [string]$master,
-    [Parameter(HelpMessage="join token",ParameterSetName="token")]
+    [Parameter(HelpMessage="join token")]
     [Alias("t")]
     [string]$token,
     [Parameter(HelpMessage="Configure ssh",ParameterSetName="ssh")]
     [switch]$ssh,
     [Parameter(HelpMessage="Install & Configure powershell 7",ParameterSetName="pwsh")]
     [switch]$pwsh,
-    [Parameter(HelpMessage="Install & Configure kubernetes",ParameterSetName="kube")]
+    [Parameter(HelpMessage="Install & Configure kubernetes")]
     [switch]$kube,
     [Alias("join")]
     [Parameter(HelpMessage="Install vim",ParameterSetName="vim")]
@@ -26,7 +26,7 @@ param (
     [Parameter(HelpMessage="all install",ParameterSetName="install")]
     [Alias("I")]
     [switch]$install,
-    [Parameter(HelpMessage="all",ParameterSetName="all")]
+    [Parameter(HelpMessage="all")]
     [Alias("A")]
     [switch]$all
 )
