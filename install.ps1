@@ -155,7 +155,7 @@ if($winget -Or $install -Or $all){
 if($pwsh -Or $install -Or $all){
     installWinget
     Write-Host "Installing PowerShell 7 ..."
-    choco install pwsh
+    choco install -y pwsh
 
     Set-Content -Force -Path $config.profile.path -Value $config.profile.data
 
@@ -217,10 +217,10 @@ if($kube -Or $all){
 if($vim -Or $install -Or $all){
     Write-Host "Installing neovim ..."
     installWinget
-    choco install neovim Microsoft.Edit
+    choco install -y neovim
 }
 
 if($tools -Or $install -Or $all){
     Write-Host "Installing tools ..."
-    choco install git jq yq
+    choco install -y git jq yq
 }
