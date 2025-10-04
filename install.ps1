@@ -142,10 +142,13 @@ $url=@{
 }
 
 function InstallWinget(){
-    $progressPreference = 'silentlyContinue'
-    Write-Host "Installing WinGet PowerShell module from PSGallery..."
-    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery
-    Write-Host "Done."
+    Invoke-WebRequest -Uri https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx -outfile Microsoft.UI.Xaml.appx
+    Add-AppxPackage -Path .\Microsoft.UI.Xaml.appx
+    $env:WinGetVer=1.11.510
+    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/fb2830f66c95424aa35457b05e88998a_License1.xml -outfile license.xml
+    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile Microsoft.DesktopAppInstaller.WinGet.appx
+    Add-AppxProvisionedPackage -Online -PackagePath .\Microsoft.DesktopAppInstaller.WinGet.appx -LicensePath .\license.xml
+
 }
 
 if($winget -Or $install -Or $all){
