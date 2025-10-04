@@ -2,16 +2,16 @@ param (
     [string]$startup='Automatic',
     [string]$key='sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIGTCxFD2UzUYYWAuDnFzwMmeWsVkPZLNfObG3hJZ4GuKAAAABHNzaDo=',
     [string]$status='Running',
-    [string]$master='',
-    [string]$token='',
+    [string]$master,
+    [string]$token,
     [switch]$ssh,
     [switch]$pwsh,
     [switch]$kube
 )
 
-$config= @{
+$config = @{
     path= "$env:ProgramData\ssh\sshd_config"
-    data= @"
+    data= @'
 Port 22
 ListenAddress 0.0.0.0
 PubkeyAuthentication yes
@@ -29,17 +29,17 @@ AllowUsers administrator
 
 Match Group administrators
        AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
-"@
-    powershell=@{
+'@
+    powershell = @{
         Path         = "HKLM:\SOFTWARE\OpenSSH"
         Name         = "DefaultShell"
         Value        = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
         PropertyType = "String"
         Force        = $true
     }
-    profile=@{
-        path=$PROFILE
-        data=@"
+    profile = @{
+        path= "$PROFILE"
+        data= @'
 install-Module -Name "PSReadLine" -NoClobber -Force
 Import-Module "PSReadLine" -NoClobber
 
@@ -99,11 +99,13 @@ foreach($file in @(".doc",".docx")){
 foreach($file in @(".ppt",".pptx",".pdf",".xml",".html")){
     $PSStyle.FileInfo.Extension[$file]=$PSStyle.Foreground.Red
 }
-}
 function Prompt {
-"$($PSStyle.Foreground.BrightBlack)|=[$($PSStyle.Foreground.Yellow)$($PSStyle.Bold)$(Get-Date -f "dd-MM-yy:HH:mm")$($PSStyle.Foreground.BrightBlack)]=[$($PSStyle.Foreground.Reset)$($PSStyle.Foreground.Cyan)$($PSStyle.Bold)$($env:COMPUTERNAME) $($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)$($env:USERNAME)$($PSStyle.Foreground.BrightBlack)]=|$($PSStyle.Reset)`n`r$($PSStyle.Foreground.Cyan)PS$($PSStyle.Foreground.White) $($executionContext.SessionState.Path.CurrentLocation)> $($PSStyle.Reset)"
-}
+@"
+$($PSStyle.Foreground.BrightBlack)|=[$($PSStyle.Foreground.Yellow)$($PSStyle.Bold)$(Get-Date -f "dd-MM-yy:HH:mm")$($PSStyle.Foreground.BrightBlack)]=[$($PSStyle.Foreground.Reset)$($PSStyle.Foreground.Cyan)$($PSStyle.Bold)$($env:COMPUTERNAME) $($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)$($env:USERNAME)$($PSStyle.Foreground.BrightBlack)]=|$($PSStyle.Reset)
+$($PSStyle.Foreground.Cyan)PS$($PSStyle.Foreground.White) $($executionContext.SessionState.Path.CurrentLocation)> $($PSStyle.Reset)"
 "@
+}
+'@
 }
 
 $admin_authorized_keys="$env:ProgramData\ssh\administrators_authorized_keys"
