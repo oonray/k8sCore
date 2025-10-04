@@ -54,11 +54,7 @@ Match Group administrators
        AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
 '@
     powershell = @{
-        Path         = "HKLM:\SOFTWARE\OpenSSH"
-        Name         = "DefaultShell"
         Value        = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-        PropertyType = "String"
-        Force        = $true
     }
     profile = @{
         path= "$PROFILE"
@@ -161,7 +157,14 @@ if($pwsh -Or $install -Or $all){
 
     Write-Host "Configure SSH to use PowerShell 7 ..."
     $config.powershell.Value = "C:\Program Files\PowerShell\7\pwsh.exe"
-    New-ItemProperty @config:powershell
+    New-ItemProperty @{
+        Path         = "HKLM:\SOFTWARE\OpenSSH"
+        Name         = "DefaultShell"
+        Value        = $config.powershell.value
+        PropertyType = "String"
+        Force        = $true
+    }
+
 }
 
 if($ssh -Or $install -Or $all){
@@ -183,7 +186,13 @@ if($ssh -Or $install -Or $all){
     Write-Host "Configuring sshd ..."
     Set-Content -Force -Path $config.path -Value $config.data
 
-    New-ItemProperty @config:powershell
+    New-ItemProperty @{
+        Path         = "HKLM:\SOFTWARE\OpenSSH"
+        Name         = "DefaultShell"
+        Value        = $config.powershell.value
+        PropertyType = "String"
+        Force        = $true
+    }
 
     Write-Host "Configuring firewall ..."
    if (!(Get-NetFirewallRule -Name "sshd" -ErrorAction SilentlyContinue)) {
