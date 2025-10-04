@@ -1,17 +1,36 @@
 param (
+    [Parameter(HelpMessage="Set Startup",ParameterSetName="startup")]
     [string]$startup='Automatic',
+    [Parameter(HelpMessage="SSH key to use",ParameterSetName="key")]
+    [Alias("k")]
     [string]$key='sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIGTCxFD2UzUYYWAuDnFzwMmeWsVkPZLNfObG3hJZ4GuKAAAABHNzaDo=',
+    [Parameter(HelpMessage="Status of the ssh processes",ParameterSetName="status")]
     [string]$status='Running',
+    [Parameter(HelpMessage="join hostname",ParameterSetName="master")]
+    [Alias("m")]
     [string]$master,
+    [Parameter(HelpMessage="join token",ParameterSetName="token")]
+    [Alias("t")]
     [string]$token,
+    [Parameter(HelpMessage="Configure ssh",ParameterSetName="ssh")]
     [switch]$ssh,
+    [Parameter(HelpMessage="Install & Configure powershell 7",ParameterSetName="pwsh")]
     [switch]$pwsh,
+    [Parameter(HelpMessage="Install & Configure kubernetes",ParameterSetName="kube")]
     [switch]$kube,
+    [Alias("join")]
+    [Parameter(HelpMessage="Install vim",ParameterSetName="vim")]
     [switch]$vim,
+    [Parameter(HelpMessage="Install winget",ParameterSetName="winget")]
     [switch]$winget,
+    [Parameter(HelpMessage="all install",ParameterSetName="install")]
+    [Alias("I")]
     [switch]$install,
-    [switch]$all
+    [Parameter(HelpMessage="all",ParameterSetName="all")]
+    [Alias("A")]
+    [switch]$all,
 )
+
 
 $config = @{
     path= "$env:ProgramData\ssh\sshd_config"
@@ -125,8 +144,7 @@ $url=@{
 function InstallWinget(){
     $progressPreference = 'silentlyContinue'
     Write-Host "Installing WinGet PowerShell module from PSGallery..."
-    Install-PackageProvider -Name NuGet -Force | Out-Null
-    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery | Out-Null
+    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery
     Write-Host "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
     Repair-WinGetPackageManager -AllUsers
     Write-Host "Done."
@@ -141,42 +159,55 @@ if($pwsh -Or $install -Or $all){
     if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
         installWinget
     }
+    Write-Host "Installing PowerShell 7 ..."
     winget install pwsh
 
     Set-Content -Force -Path $config.profile.path -Value $config.profile.data
 
+    Write-Host "Configure SSH to use PowerShell 7 ..."
     $config.powershell.Value = "C:\Program Files\PowerShell\7\pwsh.exe"
     New-ItemProperty @config:powershell
 }
 
 if($ssh -Or $install -Or $all){
+    Write-Host "Configuring SSH ..."
     mkdir "$env:USERPROFILE\.ssh\"
     ssh-keygen -t ecdsa -f "$env:USERPROFILE\.ssh\id_ecdsa"
     ssh-add "$env:USERPROFILE\.ssh\id_ecdsa"
 
+    Write-Host "Configuring SSH services ..."
     Set-Service sshd -StartupType $startup -Status $status
     Set-Service ssh-agent -StartupType $startup -Status $status
 
+    Write-Host "Adding key to authorized_keys ..."
     Add-Content -Force -Path $admin_authorized_keys -Value "$key"
     Add-Content -Force -Path $authorized_keys -Value "$key"
 
     icacls.exe $admin_authorized_keys /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
 
+    Write-Host "Configuring sshd ..."
     Set-Content -Force -Path $config.path -Value $config.data
 
     New-ItemProperty @config:powershell
 
+    Write-Host "Configuring firewall ..."
    if (!(Get-NetFirewallRule -Name "sshd" -ErrorAction SilentlyContinue)) {
         New-NetFirewallRule -Name sshd -DisplayName 'SSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
     }
+    Write-Host "Restarting SSH services ..."
+    Restart-Service sshd
+    Restart-Service ssh-agent
 }
 
 if($kube -Or $all){
+    Write-Host "Installing Contained ..."
     iex (iwr -UseBasicParsing $url.containerd)
+    Write-Host "Preparing Node ..."
     iex (iwr -UseBasicParsing $url.prepare)
 
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){
+            Write-Host "Joining $master ..."
             kubeadm join --token $token $master:6443
         }
         else{
@@ -189,8 +220,14 @@ if($kube -Or $all){
 }
 
 if($vim -Or $install -Or $all){
+    Write-Host "Installing neovim ..."
     if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
         installWinget
     }
     winget install neovim
+}
+
+if($tools -Or $install -Or $all){
+    Write-Host "Installing tools ..."
+    winget install git jq yq
 }
