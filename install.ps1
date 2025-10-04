@@ -145,6 +145,7 @@ function InstallWinget(){
     if(!(Get-Command -Name choco -ErrorAction SilentlyContinue)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iwr https://community.chocolatey.org/install.ps1 -UseBasicParsing | iex
     }
+    . $profile
 }
 
 if($winget -Or $install -Or $all){
