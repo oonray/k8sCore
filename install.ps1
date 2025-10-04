@@ -157,17 +157,23 @@ if($pwsh -Or $install -Or $all){
 
     Write-Host "Configure SSH to use PowerShell 7 ..."
     $config.powershell.Value = "C:\Program Files\PowerShell\7\pwsh.exe"
-    New-ItemProperty @{
-        Path         = "HKLM:\SOFTWARE\OpenSSH"
-        Name         = "DefaultShell"
-        Value        = $config.powershell.value
-        PropertyType = "String"
-        Force        = $true
-    }
+    $ssh_shell = @{
+            Path         = "HKLM:\SOFTWARE\OpenSSH"
+            Name         = "DefaultShell"
+            Value        = $config.powershell.value
+            PropertyType = "String"
+            Force        = $true
+        }
+
+    New-ItemProperty @ssh_shell
 
 }
 
+
+
 if($ssh -Or $install -Or $all){
+    Write-Host "Installing SSH ..."
+    Add-WindowsCapability -Online -Name "*ssh*"
     Write-Host "Configuring SSH ..."
     mkdir "$env:USERPROFILE\.ssh\"
     ssh-keygen -t ecdsa -f "$env:USERPROFILE\.ssh\id_ecdsa"
@@ -186,13 +192,15 @@ if($ssh -Or $install -Or $all){
     Write-Host "Configuring sshd ..."
     Set-Content -Force -Path $config.path -Value $config.data
 
-    New-ItemProperty @{
-        Path         = "HKLM:\SOFTWARE\OpenSSH"
-        Name         = "DefaultShell"
-        Value        = $config.powershell.value
-        PropertyType = "String"
-        Force        = $true
-    }
+    $ssh_shell = @{
+            Path         = "HKLM:\SOFTWARE\OpenSSH"
+            Name         = "DefaultShell"
+            Value        = $config.powershell.value
+            PropertyType = "String"
+            Force        = $true
+        }
+
+    New-ItemProperty @ssh_shell
 
     Write-Host "Configuring firewall ..."
    if (!(Get-NetFirewallRule -Name "sshd" -ErrorAction SilentlyContinue)) {
