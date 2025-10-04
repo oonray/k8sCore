@@ -28,7 +28,7 @@ param (
     [switch]$install,
     [Parameter(HelpMessage="all",ParameterSetName="all")]
     [Alias("A")]
-    [switch]$all,
+    [switch]$all
 )
 
 
@@ -224,7 +224,7 @@ if($vim -Or $install -Or $all){
     if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
         installWinget
     }
-    winget install neovim
+    winget install neovim Microsoft.Edit
 }
 
 if($tools -Or $install -Or $all){
