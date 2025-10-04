@@ -4,7 +4,7 @@ param (
     [Parameter(HelpMessage="SSH key to use")]
     [Alias("k")]
     [string]$key='sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIGTCxFD2UzUYYWAuDnFzwMmeWsVkPZLNfObG3hJZ4GuKAAAABHNzaDo=',
-    [Parameter(HelpMessage="Status of the ssh processes",ParameterSetName="status")]
+    [Parameter(HelpMessage="Status of the ssh processes")]
     [string]$status='Running',
     [Parameter(HelpMessage="join hostname")]
     [Alias("m")]
@@ -12,18 +12,18 @@ param (
     [Parameter(HelpMessage="join token")]
     [Alias("t")]
     [string]$token,
-    [Parameter(HelpMessage="Configure ssh",ParameterSetName="ssh")]
+    [Parameter(HelpMessage="Configure ssh")]
     [switch]$ssh,
-    [Parameter(HelpMessage="Install & Configure powershell 7",ParameterSetName="pwsh")]
+    [Parameter(HelpMessage="Install & Configure powershell 7")]
     [switch]$pwsh,
     [Parameter(HelpMessage="Install & Configure kubernetes")]
     [switch]$kube,
     [Alias("join")]
-    [Parameter(HelpMessage="Install vim",ParameterSetName="vim")]
+    [Parameter(HelpMessage="Install vim")]
     [switch]$vim,
-    [Parameter(HelpMessage="Install winget",ParameterSetName="winget")]
+    [Parameter(HelpMessage="Install winget")]
     [switch]$winget,
-    [Parameter(HelpMessage="all install",ParameterSetName="install")]
+    [Parameter(HelpMessage="all install")]
     [Alias("I")]
     [switch]$install,
     [Parameter(HelpMessage="all")]
