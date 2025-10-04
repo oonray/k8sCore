@@ -142,13 +142,14 @@ $url=@{
 }
 
 function InstallWinget(){
-    Invoke-WebRequest -Uri https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx -outfile Microsoft.UI.Xaml.appx
+    Get-AppxPackage -Name "Microsoft.UI.Xaml"
     Add-AppxPackage -Path .\Microsoft.UI.Xaml.appx
-    $env:WinGetVer=1.11.510
-    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/fb2830f66c95424aa35457b05e88998a_License1.xml -outfile license.xml
-    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile Microsoft.DesktopAppInstaller.WinGet.appx
-    Add-AppxProvisionedPackage -Online -PackagePath .\Microsoft.DesktopAppInstaller.WinGet.appx -LicensePath .\license.xml
 
+    Invoke-WebRequest -Uri -outfile https://github.com/microsoft/winget-cli/releases/download/v1.11.510/e53e159d00e04f729cc2180cffd1c02e_License1.xml license.xml
+
+    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile license.xml
+    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v1.11.510/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile .\Microsoft.DesktopAppInstaller.WinGet.appx
+    Add-AppxProvisionedPackage -Online -PackagePath .\Microsoft.DesktopAppInstaller.WinGet.appx -LicensePath .\license.xml
 }
 
 if($winget -Or $install -Or $all){
