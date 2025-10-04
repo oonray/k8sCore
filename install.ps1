@@ -125,7 +125,7 @@ foreach($file in @(".ppt",".pptx",".pdf",".xml",".html")){
 function Prompt {
 @"
 $($PSStyle.Foreground.BrightBlack)|=[$($PSStyle.Foreground.Yellow)$($PSStyle.Bold)$(Get-Date -f "dd-MM-yy:HH:mm")$($PSStyle.Foreground.BrightBlack)]=[$($PSStyle.Foreground.Reset)$($PSStyle.Foreground.Cyan)$($PSStyle.Bold)$($env:COMPUTERNAME) $($PSStyle.Foreground.BrightGreen)$($PSStyle.Bold)$($env:USERNAME)$($PSStyle.Foreground.BrightBlack)]=|$($PSStyle.Reset)
-$($PSStyle.Foreground.Cyan)PS$($PSStyle.Foreground.White) $($executionContext.SessionState.Path.CurrentLocation)> $($PSStyle.Reset)"
+$($PSStyle.Foreground.Cyan)PS$($PSStyle.Foreground.White) $($executionContext.SessionState.Path.CurrentLocation)> $($PSStyle.Reset)
 "@
 }
 '@
@@ -142,14 +142,9 @@ $url=@{
 }
 
 function InstallWinget(){
-    Get-AppxPackage -Name "Microsoft.UI.Xaml"
-    Add-AppxPackage -Path .\Microsoft.UI.Xaml.appx
-
-    Invoke-WebRequest -Uri -outfile https://github.com/microsoft/winget-cli/releases/download/v1.11.510/e53e159d00e04f729cc2180cffd1c02e_License1.xml license.xml
-
-    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v$env:WinGetVer/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile license.xml
-    Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v1.11.510/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -outfile .\Microsoft.DesktopAppInstaller.WinGet.appx
-    Add-AppxProvisionedPackage -Online -PackagePath .\Microsoft.DesktopAppInstaller.WinGet.appx -LicensePath .\license.xml
+    if(!(Get-Command -Name choco -ErrorAction SilentlyContinue)){
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iwr https://community.chocolatey.org/install.ps1 -UseBasicParsing | iex
+    }
 }
 
 if($winget -Or $install -Or $all){
@@ -157,11 +152,9 @@ if($winget -Or $install -Or $all){
 }
 
 if($pwsh -Or $install -Or $all){
-    if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
-        installWinget
-    }
+    installWinget
     Write-Host "Installing PowerShell 7 ..."
-    winget install pwsh
+    choco install pwsh
 
     Set-Content -Force -Path $config.profile.path -Value $config.profile.data
 
@@ -222,13 +215,11 @@ if($kube -Or $all){
 
 if($vim -Or $install -Or $all){
     Write-Host "Installing neovim ..."
-    if(!(Get-Command -Name winget -ErrorAction SilentlyContinue)){
-        installWinget
-    }
-    winget install neovim Microsoft.Edit
+    installWinget
+    choco install neovim Microsoft.Edit
 }
 
 if($tools -Or $install -Or $all){
     Write-Host "Installing tools ..."
-    winget install git jq yq
+    choco install git jq yq
 }
