@@ -63,7 +63,6 @@ Match Group administrators
     profile = @{
         path= "$PROFILE"
         data= @'
-install-Module -Name "PSReadLine" -Force
 Import-Module "PSReadLine" -NoClobber
 
 $readline_opts = @{
@@ -157,6 +156,7 @@ if($pwsh -Or $install -Or $all){
     Write-Host "Installing PowerShell 7 ..."
     choco install -y pwsh
 
+    install-Module -Name "PSReadLine" -Force
     Set-Content -Force -Path $config.profile.path -Value $config.profile.data
 
     Write-Host "Configure SSH to use PowerShell 7 ..."
