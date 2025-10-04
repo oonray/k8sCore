@@ -63,7 +63,7 @@ Match Group administrators
     profile = @{
         path= "$PROFILE"
         data= @'
-install-Module -Name "PSReadLine" -NoClobber -Force
+install-Module -Name "PSReadLine" -Force
 Import-Module "PSReadLine" -NoClobber
 
 $readline_opts = @{
