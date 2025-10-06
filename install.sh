@@ -41,7 +41,7 @@ function server(){
     echo "Installing server"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
-        server --agent-token $1 --data-dir $DATA_D --secrets-encryption \
+        server --data-dir $DATA_D --secrets-encryption \
         --cluster-domain kube --default-local-storage-path $L_DATA_D \
         --node-label type=server \
         --node-label name=$(uname -n) \
@@ -65,8 +65,7 @@ if $AGENT && $SERVER; then echo "Cannot be both server and agent"; help; fi
 if $SERVER
 then
     echo "Installing Server"
-    if [ -z $TOKEN ]; then echo "Needs token"; help; fi
-    server $TOKEN
+    server
     if $APPLY
     then 
         kubectl apply -k $G_URL

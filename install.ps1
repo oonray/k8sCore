@@ -217,7 +217,7 @@ if($kube -Or $all){
     .\containerd.ps1 -skipHypervisorSupportCheck
     Write-Host "Preparing Node ..."
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
-    .\node.ps1
+    .\node.ps1 -KubernetesVersion v1.33.4
 
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){
