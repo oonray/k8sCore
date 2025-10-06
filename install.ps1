@@ -213,9 +213,11 @@ if($ssh -Or $install -Or $all){
 
 if($kube -Or $all){
     Write-Host "Installing Contained ..."
-    iex (iwr -UseBasicParsing $url.containerd)
+    iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
+    .\containerd.ps1
     Write-Host "Preparing Node ..."
-    iex (iwr -UseBasicParsing $url.prepare)
+    iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
+    .\node.ps1
 
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){
