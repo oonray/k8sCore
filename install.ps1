@@ -214,7 +214,7 @@ if($ssh -Or $install -Or $all){
 if($kube -Or $all){
     Write-Host "Installing Contained ..."
     iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
-    .\containerd.ps1
+    .\containerd.ps1 -skipHypervisorSupportCheck
     Write-Host "Preparing Node ..."
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
     .\node.ps1
