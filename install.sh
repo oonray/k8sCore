@@ -126,7 +126,7 @@ function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
-    sudo echo $CNT_C | sudo tee $CNT_F
+    echo -e $CNT_C | sudo tee $CNT_F
     sudo systemctl restart containerd
 
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
