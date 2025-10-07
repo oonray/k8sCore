@@ -20,7 +20,7 @@ ARCH=$(uname -m)
 CNT_S="unix:///var/run/containerd/containerd.sock"
 CNT_F="/etc/containerd/config.toml"
 
-CNT_C="
+CNT_C=$(cat<<EOF
 version = 2
 
 [plugins]
@@ -30,7 +30,7 @@ version = 2
       conf_dir = "/etc/cni/net.d"
   [plugins."io.containerd.internal.v1.opt"]
     path = "$CNT_D"
-"
+EOF)
 
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( echo $INET | awk '{print $1 "." $2 "." $3 ".0/" $5}' )
