@@ -114,18 +114,17 @@ function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
-    sudo cat<<EOF > $CNT_F \
-    version = 2 \
-\
-    [plugins]\
-      [plugins."io.containerd.grpc.v1.cri"]\
-        [plugins."io.containerd.grpc.v1.cri".cni]\
-          bin_dir = "/usr/lib/cni"\
-          conf_dir = "/etc/cni/net.d"\
-      [plugins."io.containerd.internal.v1.opt"]\
-        path = "$CNT_D" \
+    sudo cat<<EOF | sudo tee $CNT_F
+version = 2
 
-    EOF
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".cni]
+      bin_dir = "/usr/lib/cni"
+      conf_dir = "/etc/cni/net.d"
+  [plugins."io.containerd.internal.v1.opt"]
+    path = "$CNT_D" 
+EOF
 
     sudo systemctl restart containerd
 
