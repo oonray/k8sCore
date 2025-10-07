@@ -31,6 +31,7 @@ version = 2
   [plugins."io.containerd.internal.v1.opt"]
     path = "$CNT_D"
 EOF)
+echo $CNT_C
 
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( echo $INET | awk '{print $1 "." $2 "." $3 ".0/" $5}' )
