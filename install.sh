@@ -20,19 +20,6 @@ ARCH=$(uname -m)
 CNT_S="unix:///var/run/containerd/containerd.sock"
 CNT_F="/etc/containerd/config.toml"
 
-CNT_C=$(cat<<EOF
-version = 2
-
-[plugins]
-  [plugins."io.containerd.grpc.v1.cri"]
-    [plugins."io.containerd.grpc.v1.cri".cni]
-      bin_dir = "/usr/lib/cni"
-      conf_dir = "/etc/cni/net.d"
-  [plugins."io.containerd.internal.v1.opt"]
-    path = "$CNT_D"
-EOF)
-echo $CNT_C
-
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( echo $INET | awk '{print $1 "." $2 "." $3 ".0/" $5}' )
 
@@ -127,7 +114,18 @@ function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
-    echo -e $CNT_C | sudo tee $CNT_F
+    sudo cat<<EOF > $CNT_F
+    version = 2
+
+    [plugins]
+      [plugins."io.containerd.grpc.v1.cri"]
+        [plugins."io.containerd.grpc.v1.cri".cni]
+          bin_dir = "/usr/lib/cni"
+          conf_dir = "/etc/cni/net.d"
+      [plugins."io.containerd.internal.v1.opt"]
+        path = "$CNT_D"
+    EOF)
+
     sudo systemctl restart containerd
 
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
