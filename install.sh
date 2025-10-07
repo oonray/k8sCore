@@ -78,6 +78,7 @@ function fix_name(){
 function dirs(){
     if [ -d "/mnt/storage" ]
     then
+        sudo mkdir -p $CNT_D
         sudo mkdir -p $DATA_D
         sudo mkdir -p $L_DATA_D
         sudo mkdir -p $LONG_D #69
