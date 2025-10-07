@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+  annotations:
+    argocd.argoproj.io/tracking-id: "repo-traefik"
+stringData:
+  url: https://traefik.github.io/charts
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/tracking-id: "traefik"
+spec:
+  project: default
+  sources:
+    - repoURL: https://traefik.github.io/charts
+      targetRevision: HEAD
+      helm:
+        version: v3
+        namespace: kube-system
+        releaseName: traefik
+        valuesObject:
+          logs:
+            level: INFO
+            access:
+              enabled: true
+
+          providers:
+            kubernetesCRD:
+              allowCrossNamespace: true
+
+          dashboard:
+            enabled: true
+            middlewares:
+              - name: basic-auth
+          api:
+            insecure: true
+            dashboard: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      enabled: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-ingress
+  namespace: kube-system
+spec:
+  tls:
+    secretName: traefik-tls
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`traefik.kube.internal`)
+      services:
+        - name: api@internal
+          kind: TraefikService

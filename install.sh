@@ -141,8 +141,6 @@ EOF
 
     kubeadm init --control-plane-endpoint=$MASTER_DNS \
         --apiserver-advertise-address=$MASTER \
-        --node-name $(fix_name $SYSTEM_NAME) \
-        --upload-certs
 
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
     kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
