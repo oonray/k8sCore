@@ -127,6 +127,9 @@ version = 2
 EOF
 
     sudo systemctl restart containerd
+    sudo swapoff -a
+    sudo cat /etc/fstab | sed "s:^UUID.*swap.*::" | sudo tee  /etc/fstab
+    sudo systemctl daemon-reload
 
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
         | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
