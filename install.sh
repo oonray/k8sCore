@@ -123,7 +123,8 @@ function server_k8s(){
           bin_dir = "/usr/lib/cni"\
           conf_dir = "/etc/cni/net.d"\
       [plugins."io.containerd.internal.v1.opt"]\
-        path = "$CNT_D"
+        path = "$CNT_D" \
+
     EOF
 
     sudo systemctl restart containerd
