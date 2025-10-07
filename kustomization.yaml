@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.30.0/controller.yaml
+  - https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
   - argocd
   - longhorn
   - traefik
