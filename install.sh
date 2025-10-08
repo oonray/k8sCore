@@ -164,9 +164,9 @@ EOF
     sudo systemctl enable --now kubelet
 
     kubeadm init \
-        --apiserver-advertise-address=$MASTER \
-        --node-ip $MASTER \
         --pod-network-cidr 10.244.0.0/16
+        #--apiserver-advertise-address=$MASTER \
+        #--node-ip $MASTER \
         #--control-plane-endpoint=$MASTER \
 
     mkdir -p $HOME/.kube
