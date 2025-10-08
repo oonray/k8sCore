@@ -138,12 +138,12 @@ EOF
     #sudo cp .fstab.new /etc/fstab
     #sudo systemctl daemon-reload
 
-    if [ -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
+    if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
         curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
             | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     fi
 
-    if [ -s "/etc/apt/sources.list.d/kubernetes.list" ];then
+    if [ ! -s "/etc/apt/sources.list.d/kubernetes.list" ];then
         echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' \
             | sudo tee /etc/apt/sources.list.d/kubernetes.list
     fi
