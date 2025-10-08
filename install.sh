@@ -128,7 +128,9 @@ EOF
 
     sudo systemctl restart containerd
     sudo swapoff -a
-    sudo cat /etc/fstab | sed "s:^UUID.*swap.*::" | sudo tee  /etc/fstab
+    sudo cat /etc/fstab > .fstab.bak
+    sudo cat /etc/fstab | sed "s:^UUID.*swap.*::" > .fstab.new
+    sudo cp .fstab.new /etc/fstab
     sudo systemctl daemon-reload
 
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
