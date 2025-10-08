@@ -132,7 +132,8 @@ EOF
     sudo systemctl restart containerd
     sudo systemctl enable containerd
 
-    if [ ! $(grep -oE 'net.ipv4.ip_forward = 1' /etc/sysctl.conf) ];then
+    FORWARD=$(grep -oE 'net.ipv4.ip_forward = 1' /etc/sysctl.conf)
+    if [[ ! $FORWARD =~ 'net.ipv4.ip_forward = 1' ]];then
         sudo echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
         sudo sysctl -p
     fi
