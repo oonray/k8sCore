@@ -111,7 +111,7 @@ function server_k3s(){
 }
 
 function server_k8s(){
-    sudo apt-get install -y containerd containerd.io sudo \
+    sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
     containerd config default | sudo tee /etc/containerd/config.tom
