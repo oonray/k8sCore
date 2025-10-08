@@ -115,7 +115,10 @@ function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
+
     containerd config default | sudo tee /etc/containerd/config.tom
+    sed -i -e 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+    sed -i -e 's/registry.k8s.io\/pause:3.6/registry.k8s.io\/pause:3.9/g' /etc/containerd/config.toml
 
     sudo tee $CNT_F <<EOF
 version = 2
@@ -132,17 +135,14 @@ EOF
     sudo systemctl restart containerd
     sudo systemctl enable containerd
 
-    FORWARD=$(grep -oE 'net.ipv4.ip_forward = 1' /etc/sysctl.conf)
-    if [[ ! $FORWARD =~ 'net.ipv4.ip_forward = 1' ]];then
-        sudo echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
-        sudo sysctl -p
-    fi
-
     sudo swapoff -a
-    #sudo cat /etc/fstab > .fstab.bak
-    #sudo cat /etc/fstab | sed "s:^UUID.*swap.*::" > .fstab.new
-    #sudo cp .fstab.new /etc/fstab
-    #sudo systemctl daemon-reload
+
+    sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
 
     if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
         curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
@@ -160,9 +160,9 @@ EOF
         aarch64) ARCH="arm64";;
         x86_64) ARCH="amd64";;
     esac
-    mkdir -p /opt/cni/bin
-    curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
-    tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
+    sudo mkdir -p /opt/cni/bin
+    sudo curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
+    sudo tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
 
     sudo apt-get update
     sudo apt-get install -y kubelet kubeadm kubectl wget curl vim git
@@ -176,11 +176,6 @@ EOF
     sudo modprobe overlay
     sudo modprobe br_netfilter
 
-    sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
-EOF
 
     sudo systemctl enable kubelet
     sudo kubeadm config images pull
@@ -197,7 +192,7 @@ EOF
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
     kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
 
-    kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 }
 
 
