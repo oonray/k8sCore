@@ -110,6 +110,7 @@ function server_k3s(){
 
 }
 
+
 function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
