@@ -155,8 +155,8 @@ EOF
     sudo apt-mark hold kubelet kubeadm kubectl
     sudo systemctl enable --now kubelet
 
-    kubeadm init --control-plane-endpoint=$MASTER_DNS \
-        --apiserver-advertise-address=$MASTER \
+    kubeadm init --control-plane-endpoint=$MASTER \
+        --apiserver-advertise-address=$MASTER 
 
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
     kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
