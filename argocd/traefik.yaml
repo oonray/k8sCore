@@ -25,7 +25,6 @@ spec:
       targetRevision: HEAD
       helm:
         version: v3
-        namespace: kube-system
         releaseName: traefik
         valuesObject:
           logs:
@@ -39,14 +38,12 @@ spec:
 
           dashboard:
             enabled: true
-            middlewares:
-              - name: basic-auth
           api:
             insecure: true
             dashboard: true
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
   syncPolicy:
     automated:
       prune: true
