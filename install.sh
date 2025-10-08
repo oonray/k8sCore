@@ -2,10 +2,10 @@
 set -e
 set -o noglob
 
-CNT_D="/mnt/storage/k3s/containerd"
-DATA_D="/mnt/storage/k3s/data"
-L_DATA_D="/mnt/storage/k3s/local"
-ARGO_D="/mnt/storage/k3s/argocd"
+CNT_D="/mnt/storage/k8s/containerd"
+DATA_D="/mnt/storage/k8s/data"
+L_DATA_D="/mnt/storage/k8s/local"
+ARGO_D="/mnt/storage/k8s/argocd"
 LONG_D="/mnt/storage/longhorn/data" #69
 
 SERVER=false
