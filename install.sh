@@ -148,16 +148,35 @@ EOF
             | sudo tee /etc/apt/sources.list.d/kubernetes.list
     fi
 
+    ARCH=$(uname -m)
+    case $ARCH in
+        armv7*) ARCH="arm";;
+        aarch64) ARCH="arm64";;
+        x86_64) ARCH="amd64";;
+    esac
+    mkdir -p /opt/cni/bin
+    curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
+    tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
+
     sudo apt-get update
     sudo apt-get install -y kubelet kubeadm kubectl
     sudo apt-mark hold kubelet kubeadm kubectl
     sudo systemctl enable --now kubelet
 
-    kubeadm init --control-plane-endpoint=$MASTER \
-        --apiserver-advertise-address=$MASTER 
+    kubeadm init \
+        --apiserver-advertise-address=$MASTER \
+        --node-ip $MASTER \
+        --pod-network-cidr 10.244.0.0/16
+        #--control-plane-endpoint=$MASTER \
+
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
     kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
+
+    kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 }
 
 
