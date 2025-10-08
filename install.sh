@@ -125,8 +125,15 @@ version = 2
   [plugins."io.containerd.internal.v1.opt"]
     path = "$CNT_D" 
 EOF
-
     sudo systemctl restart containerd
+
+    grep -oE "net.ipv4.ip_forward = 1" /etc/sysctl.conf
+    if [ ! "$?" -ne 0 ];then
+        sudo echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
+        sudo sysctl -p
+        sudo systemctl restart sysctl
+    fi
+
     sudo swapoff -a
     #sudo cat /etc/fstab > .fstab.bak
     #sudo cat /etc/fstab | sed "s:^UUID.*swap.*::" > .fstab.new
@@ -134,13 +141,13 @@ EOF
     #sudo systemctl daemon-reload
 
     if [ -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
-        | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
+            | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     fi
 
     if [ -s "/etc/apt/sources.list.d/kubernetes.list" ];then
-    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' \
-        | sudo tee /etc/apt/sources.list.d/kubernetes.list
+        echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' \
+            | sudo tee /etc/apt/sources.list.d/kubernetes.list
     fi
 
     sudo apt-get update
