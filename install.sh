@@ -111,10 +111,12 @@ function server_k3s(){
 }
 
 function server_k8s(){
-    sudo apt-get install -y containerd sudo \
+    sudo apt-get install -y containerd containerd.io sudo \
          apt-transport-https ca-certificates curl gpg 
 
-    sudo cat<<EOF | sudo tee $CNT_F
+    containerd config default | sudo tee /etc/containerd/config.tom
+
+    sudo tee $CNT_F <<EOF
 version = 2
 
 [plugins]
@@ -125,7 +127,9 @@ version = 2
   [plugins."io.containerd.internal.v1.opt"]
     path = "$CNT_D" 
 EOF
+
     sudo systemctl restart containerd
+    sudo systemctl enable containerd
 
     if [ ! $(grep -oE 'net.ipv4.ip_forward = 1' /etc/sysctl.conf) ];then
         sudo echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
@@ -159,12 +163,27 @@ EOF
     tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
 
     sudo apt-get update
-    sudo apt-get install -y kubelet kubeadm kubectl
+    sudo apt-get install -y kubelet kubeadm kubectl wget curl vim git
     sudo apt-mark hold kubelet kubeadm kubectl
-    sudo systemctl enable --now kubelet
 
-    kubeadm init \
-        --pod-network-cidr 10.244.0.0/16
+    sudo tee /etc/modules-load.d/k8s.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+    sudo modprobe overlay
+    sudo modprobe br_netfilter
+
+    sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+    sudo systemctl enable kubelet
+    sudo kubeadm config images pull
+
+    kubeadm init --pod-network-cidr 10.244.0.0/16
         #--apiserver-advertise-address=$MASTER \
         #--node-ip $MASTER \
         #--control-plane-endpoint=$MASTER \
