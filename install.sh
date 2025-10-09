@@ -338,7 +338,7 @@ then
     kubectl apply -k $G_URL
 fi
 if $UNINSTALL
+then
     echo "Uninstalling Server"
     server_k8s_uninstall
-then
 fi
