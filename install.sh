@@ -302,7 +302,8 @@ function server_k8s_uninstall(){
     sudo kubeadm reset
 
     printf "\nUninstalling kubernetes and containerd"
-    sudo apt-get purge -y kubeadm kubectl kubelet \
+    sudo apt-get purge -y --allow-change-held-packages \
+            kubeadm kubectl kubelet \
             kubernetes-cni containerd \
          && apt-get autoremove -y \
          && apt-get clean -y
