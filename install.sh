@@ -21,7 +21,6 @@ DATA_D="$MNTK_D/data"
 L_DATA_D="$MNTK_D/local"
 ARGO_D="$MNTK_D/argocd"
 
-CNT_C="/etc/containerd/config.toml"
 CNT_S="unix:///var/run/containerd/containerd.sock"
 CNT_F="$CNT_C"
 
@@ -185,7 +184,7 @@ EOF
 
     printf "\nInstalling containerd\n"
     containerd config default \
-        | sudo dd status=none of=$CNT_C
+        | sudo dd status=none of=$CNT_F
 
     sed -i -e \
         's/SystemdCgroup = false/SystemdCgroup = true/g' \
@@ -196,22 +195,6 @@ EOF
         $CNT_C
 
     sudo systemctl daemon-reload
-
-    sudo dd status=none of=$CNT_F <<EOF
-version = 2
-
-SystemdCgroup=true
-
-[plugins]
-  [plugins."io.containerd.grpc.v1.cri"]
-      [containerd.runtimes.runc.options]
-         SystemdCgroup = true
-    [plugins."io.containerd.grpc.v1.cri".cni]
-      bin_dir = "/usr/lib/cni"
-      conf_dir = "/etc/cni/net.d"
-  [plugins."io.containerd.internal.v1.opt"]
-    path = "$CNT_D"
-EOF
 
     sudo systemctl restart containerd
     sudo systemctl enable containerd
