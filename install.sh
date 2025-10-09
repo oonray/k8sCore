@@ -301,7 +301,12 @@ function server_k8s_uninstall(){
         $DATA_D \
         $L_DATA_D \
         $LONG_D \
-        $ARGO_D
+        $ARGO_D \
+        "$MNTK_D/*" \
+        "$MNTL_D/*"
+
+    sudo ls -lah $MNTK_D
+    sudo ls -lah $MNTL_D
 
     printf "\nResetting iptables\n"
     sudo iptables -F \
