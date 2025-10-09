@@ -2,14 +2,24 @@
 set -e
 set -o noglob
 
-if [ ! -n $SYSTEM_NAME]; then KMNT="k8s" fi
+if [ "$EUID" -ne 0 ]
+  then echo "Please run with sudo"
+  exit
+fi
+
+KMNT="k8s"
+ARG_S='hsa3t:k:m'
+ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-3]k3s [-t]token [-m]master_addr"
 
 STORE_D="/mnt/storage"
 MNTS_D="$(sudo lsblk | grep "$STORE_D")"
 
 MNTL_DEV=$(sudo lsblk | grep -E "50G.*disk" | awk '{print $1}')
 MNTK_D="$STORE_D/$KMNT" #69
+
 CNT_D="$MNTK_D/containerd"
+CNT_C="/etc/containerd/config.toml"
+
 DATA_D="$MNTK_D/data"
 L_DATA_D="$MNTK_D/local"
 ARGO_D="$MNTK_D/argocd"
@@ -22,6 +32,7 @@ SERVER=false
 AGENT=false
 APPLY=false
 UNINSTALL=false
+K3S=false
 
 G_URL="https://github.com/oonray/k8sCore"
 
@@ -95,7 +106,7 @@ function mount(){
                 exit 1
             else
                 if [! -z $(sudo grep -E "$MNTK_UUID")]; then
-                    sudo tee -a /etc/fstab <<EOF
+                    sudo dd status=none oflag=append of=/etc/fstab <<EOF
 $MNTK_UUID $MNTK_D  ext4 errors=remount-ro 0 1
 EOF
                 fi
@@ -112,7 +123,7 @@ EOF
                 exit 1
             else
                 if [! -z $(sudo grep -E "$MNTL_UUID")]; then
-                    sudo tee -a /etc/fstab <<EOF
+                    sudo dd status=none oflag=append of=/etc/fstab <<EOF
 $MNTK_UUID $MNTK_D  ext4 errors=remount-ro 0 1
 EOF
                 fi
@@ -141,7 +152,7 @@ function dirs(){
 }
 
 function help(){
-    echo "USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-w]worker [-t]token [-m]master_addr"
+    echo $ARG_H
     exit 2
 }
 
@@ -181,7 +192,7 @@ function server_k8s(){
 
     if [ ! $(sudo sysctl net.ipv4.ip_forward | awk '{print $3}') ];
     then
-        sudo tee -a /etc/ <<EOF
+        sudo dd status=none of=/etc/sysctl.d/forward.conf <<EOF
 net.ipv4.ip_forward=1
 net.netfilter.nf_conntrack_max=1048576
 EOF
@@ -189,13 +200,20 @@ EOF
         echo "net.ipv4.ip_forward IS ENABLED"
     fi
 
-    containerd config default | sudo tee /etc/containerd/config.tom
-    sed -i -e 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
-    sed -i -e 's/registry.k8s.io\/pause:3.6/registry.k8s.io\/pause:3.9/g' /etc/containerd/config.toml
+    containerd config default \
+        | sudo dd status=none of=$CNT_C
+
+    sed -i -e \
+        's/SystemdCgroup = false/SystemdCgroup = true/g' \
+        $CNT_C
+
+    sed -i -e \
+        's/registry.k8s.io\/pause:3.6/registry.k8s.io\/pause:3.9/g' \
+        $CNT_C
 
     sudo systemctl daemon-reload
 
-    sudo tee $CNT_F <<EOF
+    sudo dd status=none of=$CNT_F <<EOF
 version = 2
 
 [plugins]
@@ -213,42 +231,51 @@ EOF
     sudo swapoff -a
     sudo systemctl daemon-reload
 
-    sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+    sudo dd status=none of=/etc/sysctl.d/kubernetes.conf<<EOF
 net.ipv4.ip_forward = 1
+net.netfilter.nf_conntrack_max=1048576
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
 EOF
 
     sudo systemctl daemon-reload
 
-    if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
-            | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    fi
 
-    if [ ! -s "/etc/apt/sources.list.d/kubernetes.list" ];then
-        echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' \
-            | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    fi
-
+    echo "Adding plugins"
     ARCH=$(uname -m)
     case $ARCH in
         armv7*) ARCH="arm";;
         aarch64) ARCH="arm64";;
         x86_64) ARCH="amd64";;
     esac
+
     sudo mkdir -p /opt/cni/bin
     sudo curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
     sudo tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
 
+    echo "Installing kubernetes"
+    if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
+        curl -fsSL \
+             https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
+            | sudo gpg --dearmor \
+            -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    fi
+
+    if [ ! -s "/etc/apt/sources.list.d/kubernetes.list" ];then
+        sudo dd status=none of=/etc/apt/sources.list.d/kubernetes.list << EOF
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /
+EOF
+    fi
+
     sudo systemctl daemon-reload
     sudo apt-get update \
-        && apt-get install -y kubeadm kubectl kubelet kubernetes-cni kube \
+        && apt-get install -y kubeadm kubectl kubelet \
+            kubernetes-cni kube \
             wget curl vim git \
         && apt-mark hold kubelet kubeadm kubectl
 
-    sudo tee /etc/modules-load.d/k8s.conf <<EOF
+    echo "Adding modules"
+    sudo dd status=none of=/etc/modules-load.d/k8s.conf <<EOF
 overlay
 br_netfilter
 EOF
@@ -258,9 +285,11 @@ EOF
         && modprobe br_netfilter 
 
 
+    echo "Enabeling kubelet"
     sudo systemctl enable kubelet
     sudo kubeadm config images pull
 
+    echo "Cluster INIT"
     kubeadm init --pod-network-cidr 10.244.0.0/16
         #--apiserver-advertise-address=$MASTER \
         #--node-ip $MASTER \
@@ -269,12 +298,15 @@ EOF
 }
 
 function server_k8s_uninstall(){
+    echo "Resetting kubeadm"
     sudo kubeadm reset
 
+    echo "Uninstalling kubernetes and containerd"
     sudo apt-get purge kubeadm kubectl kubelet kubernetes-cni kube containerd \
          && apt autoremove \
          && apt clean
 
+    echo "Removing folders"
     sudo rm -rf ~/.kube \
         /etc/cni \
         /etc/kubernetes \
@@ -286,6 +318,7 @@ function server_k8s_uninstall(){
         /var/lib/etcd2/ \
         /var/run/kubernetes
 
+    echo "Resetting iptables"
     sudo iptables -F \
         && iptables -X \
         && iptables -t nat -F \
@@ -295,50 +328,66 @@ function server_k8s_uninstall(){
         && iptables -t mangle -F \
         && iptables -t mangle -X
 
+        echo "Reloading"
         sudo systemctl daemon-reload
 }
 
-while getopts "saht:k:m:3" opt; do
-    case "$opt" in
-        m) MASTER=$OPTARG ;;
-        t) TOKEN=$OPTARG ;;
-        s) SERVER=true ;;
-        a) AGENT=true ;;
-        k) APPLY=true ;;
-        u) UNINSTALL=true ;;
-        3) KMNT="k3s" ;;
-        h) ;&
-        *) help;;
-    esac
-done
-if $AGENT && $SERVER; then echo "Cannot be both server and agent"; help; fi
-if $SERVER
-then
-    echo "Installing Server"
-    server
-fi
-if $AGENT
-then
-    echo "Installing Agent"
-    if [ -z $TOKEN ]; then echo "Needs token"; help; fi
-    if [ -z $MASTER ]; then echo "Needs master"; help; fi
-    agent $TOKEN $MASTER
-fi
-if $APPLY
-then
-    echo "Configuring Server and Applying core features"
-    mkdir -p $HOME/.kube
-    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+function main(){
+    echo "Kubernetes installer for Linux"
 
-    kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-    kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
+    while getopts "$ARG_S" opt; do
+        case "$opt" in
+            s) SERVER=true ;;
+            a) AGENT=true ;;
+            t) TOKEN=$OPTARG ;;
+            3) KMNT="k3s";K3S=true ;;
+            m) MASTER=$OPTARG ;;
+            k) APPLY=true ;;
+            u) UNINSTALL=true ;;
+            h) ;&
+            *) help;;
+        esac
+    done
 
-    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-    kubectl apply -k $G_URL
-fi
-if $UNINSTALL
-then
-    echo "Uninstalling Server"
-    server_k8s_uninstall
-fi
+    if $AGENT && $SERVER;
+    then
+        echo "Cannot be both server and agent"
+        help
+    fi
+
+    if $SERVER
+    then
+        echo "Installing Server"
+        server
+    fi
+
+    if $AGENT
+    then
+        echo "Installing Agent"
+        if [ -z $TOKEN ]; then echo "Needs token"; help; fi
+        if [ -z $MASTER ]; then echo "Needs master"; help; fi
+        agent $TOKEN $MASTER
+    fi
+
+    if $APPLY
+    then
+        echo "Configuring Server and Applying core features"
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+        kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
+
+        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+        kubectl apply -k $G_URL
+    fi
+
+    if $UNINSTALL
+    then
+        echo "Uninstalling Server"
+        server_k8s_uninstall
+    fi
+}
+
+main
