@@ -87,7 +87,7 @@ function fix_name(){
 }
 
 function mount(){
-    if [! -d "$STORE_D" ]; then
+    if [ ! -d "$STORE_D" ]; then
         echo "$STORE_D not found! making it"
         sudo mkdir -p $STORE_D
     fi
@@ -105,7 +105,7 @@ function mount(){
                 echo "$MNTL_DEV_P Not found"
                 exit 1
             else
-                if [! -z $(sudo grep -E "$MNTK_UUID")]; then
+                if [ ! -z $(sudo grep -E "$MNTK_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
 $MNTK_UUID $MNTK_D  ext4 errors=remount-ro 0 1
 EOF
@@ -122,7 +122,7 @@ EOF
                 echo "$MNTL_DEV_P Not found"
                 exit 1
             else
-                if [! -z $(sudo grep -E "$MNTL_UUID")]; then
+                if [ ! -z $(sudo grep -E "$MNTL_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
 $MNTK_UUID $MNTK_D  ext4 errors=remount-ro 0 1
 EOF
@@ -301,10 +301,10 @@ function server_k8s_uninstall(){
     sudo kubeadm reset
 
     echo "Uninstalling kubernetes and containerd"
-    sudo apt-get purge kubeadm kubectl kubelet \
+    sudo apt-get purge -y kubeadm kubectl kubelet \
             kubernetes-cni containerd \
-         && apt autoremove \
-         && apt clean
+         && apt-get autoremove -y \
+         && apt-get clean -y
 
     echo "Removing folders"
     sudo rm -rf ~/.kube \
