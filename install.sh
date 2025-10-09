@@ -270,8 +270,7 @@ EOF
     sudo systemctl daemon-reload
     sudo apt-get update \
         && apt-get install -y kubeadm kubectl kubelet \
-            kubernetes-cni kube \
-            wget curl vim git \
+            kubernetes-cni wget curl vim git \
         && apt-mark hold kubelet kubeadm kubectl
 
     echo "Adding modules"
@@ -302,7 +301,8 @@ function server_k8s_uninstall(){
     sudo kubeadm reset
 
     echo "Uninstalling kubernetes and containerd"
-    sudo apt-get purge kubeadm kubectl kubelet kubernetes-cni kube containerd \
+    sudo apt-get purge kubeadm kubectl kubelet \
+            kubernetes-cni containerd \
          && apt autoremove \
          && apt clean
 
@@ -354,19 +354,21 @@ then
     exit 0
 fi
 
-if $AGENT && $SERVER;
-then
-    echo "Cannot be both server and agent"
-    help
-    exit 2
-fi
-if ! $AGENT && ! $SERVER && $UNINSTALL && ! $APPLY && ! $HELP
+if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
     echo "NO OPTIONS. Must be agent, server, apply or uninstall "
     help
     exit 2
 
 fi
+
+if $AGENT && $SERVER;
+then
+    echo "Cannot be both server and agent"
+    help
+    exit 2
+fi
+
 if $SERVER
 then
     echo "Installing Server"
