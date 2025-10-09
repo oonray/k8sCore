@@ -183,6 +183,7 @@ EOF
         printf "\nnet.ipv4.ip_forward IS ENABLED\n"
     fi
 
+    printf "\nInstalling containerd\n"
     containerd config default \
         | sudo dd status=none of=$CNT_C
 
