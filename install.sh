@@ -298,7 +298,9 @@ function server_k8s_uninstall(){
         /var/lib/etcd \
         /var/lib/kubelet \
         /var/lib/etcd2/ \
-        /var/run/kubernetes
+        /var/run/kubernetes \
+        $MNTK_D/* \
+        $MTL_D/*
 
     printf "\nResetting iptables\n"
     sudo iptables -F \
