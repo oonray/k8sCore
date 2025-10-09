@@ -169,6 +169,10 @@ function server_k8s(){
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
+
+    sudo systemctl stop apparmor
+    sudo systemctl disable apparmor
+
     if [ ! $(sudo sysctl net.ipv4.ip_forward | awk '{print $3}') ];
     then
         sudo dd status=none of=/etc/sysctl.d/forward.conf <<EOF
