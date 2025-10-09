@@ -332,65 +332,7 @@ function server_k8s_uninstall(){
         sudo systemctl daemon-reload
 }
 
-function main(){
-    echo "Kubernetes installer for Linux"
-    if $HELP
-    then
-        help
-        exit 0
-    fi
-
-    if $AGENT && $SERVER;
-    then
-        echo "Cannot be both server and agent"
-        help
-        exit 2
-    fi
-    if ! $AGENT && ! $SERVER && $UNINSTALL && ! $APPLY && ! $HELP
-    then
-        echo "NO OPTIONS. Must be agent, server, apply or uninstall "
-        help
-        exit 2
-
-    fi
-    if $SERVER
-    then
-        echo "Installing Server"
-        server
-    fi
-
-    if $AGENT
-    then
-        echo "Installing Agent"
-        if [ -z $TOKEN ]; then echo "Needs token"; help; fi
-        if [ -z $MASTER ]; then echo "Needs master"; help; fi
-        agent $TOKEN $MASTER
-    fi
-
-    if $APPLY
-    then
-        echo "Configuring Server and Applying core features"
-        mkdir -p $HOME/.kube
-        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-        sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-        kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
-
-        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-        kubectl apply -k $G_URL
-    fi
-
-    if $UNINSTALL
-    then
-        echo "Uninstalling Server"
-        server_k8s_uninstall
-        exit 0
-    fi
-
-    echo "No more Tasks!"
-}
-
+#MAIN
 while getopts "$ARG_S" opt; do
     case "$opt" in
         h) HELP=true ;;
@@ -405,4 +347,59 @@ while getopts "$ARG_S" opt; do
     esac
 done
 
-main
+echo "Kubernetes installer for Linux"
+if $HELP
+then
+    help
+    exit 0
+fi
+
+if $AGENT && $SERVER;
+then
+    echo "Cannot be both server and agent"
+    help
+    exit 2
+fi
+if ! $AGENT && ! $SERVER && $UNINSTALL && ! $APPLY && ! $HELP
+then
+    echo "NO OPTIONS. Must be agent, server, apply or uninstall "
+    help
+    exit 2
+
+fi
+if $SERVER
+then
+    echo "Installing Server"
+    server
+fi
+
+if $AGENT
+then
+    echo "Installing Agent"
+    if [ -z $TOKEN ]; then echo "Needs token"; help; fi
+    if [ -z $MASTER ]; then echo "Needs master"; help; fi
+    agent $TOKEN $MASTER
+fi
+
+if $APPLY
+then
+    echo "Configuring Server and Applying core features"
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+    kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
+
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    kubectl apply -k $G_URL
+fi
+
+if $UNINSTALL
+then
+    echo "Uninstalling Server"
+    server_k8s_uninstall
+    exit 0
+fi
+
+echo "No more Tasks!"
