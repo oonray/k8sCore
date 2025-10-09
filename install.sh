@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 set -o noglob
 
 if [ "$EUID" -ne 0 ]
@@ -8,8 +7,8 @@ if [ "$EUID" -ne 0 ]
 fi
 
 KMNT="k8s"
-ARG_S='hsauk3t:m:'
-ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-u]uninstall [-k]apply [-3]k3s [-t]token [-m]master_addr"
+ARG_S="hsaukKt:m:"
+ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-u]uninstall [-k]apply [-K]k3s [-t]token [-m]master_addr"
 
 STORE_D="/mnt/storage"
 MNTS_D="$(sudo lsblk | grep "$STORE_D")"
@@ -33,6 +32,7 @@ AGENT=false
 APPLY=false
 UNINSTALL=false
 K3S=false
+HELP=false
 
 G_URL="https://github.com/oonray/k8sCore"
 
@@ -334,30 +334,23 @@ function server_k8s_uninstall(){
 
 function main(){
     echo "Kubernetes installer for Linux"
-
-    while getopts "$ARG_S" opt; do
-        case "$opt" in
-            s) SERVER=true ;;
-            a) AGENT=true ;;
-            u) UNINSTALL=true ;;
-            k) APPLY=true ;;
-            3) KMNT="k3s";K3S=true ;;
-            t) TOKEN=$OPTARG ;;
-            m) MASTER=$OPTARG ;;
-            h) ;&
-            *) help;;
-        esac
-    done
+    if $HELP
+    then
+        help
+        exit 0
+    fi
 
     if $AGENT && $SERVER;
     then
         echo "Cannot be both server and agent"
         help
+        exit 2
     fi
-    if [ ! $AGENT && ! $SERVER ] && [ ! $UNINSTALL || !$APPLY ]
+    if ! $AGENT && ! $SERVER && $UNINSTALL && ! $APPLY && ! $HELP
     then
         echo "NO OPTIONS. Must be agent, server, apply or uninstall "
         help
+        exit 2
 
     fi
     if $SERVER
@@ -397,5 +390,19 @@ function main(){
 
     echo "No more Tasks!"
 }
+
+while getopts "$ARG_S" opt; do
+    case "$opt" in
+        h) HELP=true ;;
+        s) SERVER=true ;;
+        a) AGENT=true ;;
+        u) UNINSTALL=true ;;
+        k) APPLY=true ;;
+        K) KMNT="k3s";K3S=true ;;
+        t) TOKEN=$OPTARG ;;
+        m) MASTER=$OPTARG ;;
+        *) HELP=true ;;
+    esac
+done
 
 main
