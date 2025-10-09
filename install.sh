@@ -170,6 +170,7 @@ function agent(){
 function server(){
     dirs
     server_k8s
+    sudo reboot
 }
 
 function server_k3s(){
@@ -394,7 +395,6 @@ then
     kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-    kubectl apply -k $G_URL
 fi
 
 if $UNINSTALL
