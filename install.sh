@@ -199,6 +199,8 @@ EOF
     sudo dd status=none of=$CNT_F <<EOF
 version = 2
 
+SystemdCgroup=true
+
 [plugins]
   [plugins."io.containerd.grpc.v1.cri"]
     [plugins."io.containerd.grpc.v1.cri".cni]
@@ -272,9 +274,10 @@ EOF
     sudo kubeadm config images pull
 
     printf "\nCluster INIT\n"
-    kubeadm init --pod-network-cidr 10.244.0.0/16
-        #--apiserver-advertise-address=$MASTER \
-        #--node-ip $MASTER \
+    kubeadm init \
+        --pod-network-cidr 10.244.0.0/16 \
+        --service-cidr=10.243.0.0/16 \
+        --apiserver-advertise-address=$MASTER
         #--control-plane-endpoint=$MASTER \
 
 }
