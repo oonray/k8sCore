@@ -2,7 +2,7 @@
 set -o noglob
 
 if [ "$EUID" -ne 0 ]
-  then echo "\nPlease run with sudo"
+  then printf "\nPlease run with sudo"
   exit
 fi
 
@@ -44,7 +44,7 @@ CNT_F="/etc/containerd/config.toml"
 
 ARCH=$(uname -m)
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
-EXT_NET=$( echo $INET | awk '{print $1 "." $2 "." $3 ".0/" $5}' )
+EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/" $5}' )
 
 #
 # CAN be set by ENV
@@ -59,7 +59,7 @@ if [ ! -n $MASTER_DNS]; then
 MASTER_DNS=${SYSTEM_NAME}.${DNS_NAME}
 fi
 if [ ! -n $MASTER]; then
-MASTER=$( echo $INET | awk '{print $1 "." $2 "." $3 "." $4}' )
+MASTER=$( printf $INET | awk '{print $1 "." $2 "." $3 "." $4}' )
 fi
 
 #-------------------------
@@ -67,15 +67,15 @@ fi
 #-------------------------
 info()
 {
-    echo '[INFO] ' "$@"
+    printf '[INFO] ' "$@"
 }
 warn()
 {
-    echo '[WARN] ' "$@" >&2
+    printf '[WARN] ' "$@" >&2
 }
 fatal()
 {
-    echo '[ERROR] ' "$@" >&2
+    printf '[ERROR] ' "$@" >&2
     exit 1
 }
 #-------------------------
@@ -83,26 +83,26 @@ fatal()
 #-------------------------
 
 function fix_name(){
-    echo "\n$@" | sed -e 's/[][!#$%&()*;<=>?\_`{|}/[:space:]]//g;'
+    printf "\n$@" | sed -e 's/[][!#$%&()*;<=>?\_`{|}/[:space:]]//g;'
 }
 
 function mount(){
     if [ ! -d "$STORE_D" ]; then
-        echo "\n$STORE_D not found! making it"
+        printf "\n$STORE_D not found! making it"
         sudo mkdir -p $STORE_D
     fi
 
     if [ -z $MNTS_D ]; then
-        echo "\n$STORE_D has no disks mounted. mounting ..."
+        printf "\n$STORE_D has no disks mounted. mounting ..."
 
         if [ -z $MNTK_DEV ];then
-            echo "\nNO 50G Disk found to mount at $MNTK_D"
+            printf "\nNO 50G Disk found to mount at $MNTK_D"
             exit 1
         else
             local MNTK_DEV_P="/dev/${MNTK_DEV}1"
             local MNTK_UUID=$(sudo blkid $MNTK_DEV_P | awk '{print $2}')
             if [ -z $MNTK_UUID ]; then
-                echo "\n$MNTL_DEV_P Not found"
+                printf "\n$MNTL_DEV_P Not found"
                 exit 1
             else
                 if [ ! -z $(sudo grep -E "$MNTK_UUID") ]; then
@@ -113,13 +113,13 @@ EOF
             fi
         fi
         if [ -z $MNTL_DEV ];then
-            echo "\nNO 100G Disk found to mount at $MNTL_D"
+            printf "\nNO 100G Disk found to mount at $MNTL_D"
             exit 1
         else
             local MNTL_DEV_P="/dev/${MNTK_DEV}1"
             local MNTL_UUID=$(sudo blkid $MNTL_DEV_P | awk '{print $2}')
             if [ -z $MNTL_UUID ]; then
-                echo "\n$MNTL_DEV_P Not found"
+                printf "\n$MNTL_DEV_P Not found"
                 exit 1
             else
                 if [ ! -z $(sudo grep -E "$MNTL_UUID") ]; then
@@ -152,12 +152,12 @@ function dirs(){
 }
 
 function help(){
-    echo $ARG_H
+    printf $ARG_H
     exit 2
 }
 
 function agent(){
-    echo "\nInstalling agent"
+    printf "\nInstalling agent"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
         agent --token $1 --server https://$2:6443 --data-dir $DATA_D \
@@ -174,7 +174,7 @@ function server(){
 }
 
 function server_k3s(){
-    echo "\nUSING k3s"
+    printf "\nUSING k3s"
     curl -sfL "https://get.k3s.io" | sh -s - \
         server --data-dir $DATA_D --secrets-encryption \
         --cluster-domain kube --default-local-storage-path $L_DATA_D \
@@ -187,7 +187,7 @@ function server_k3s(){
 
 
 function server_k8s(){
-    echo "\nUSING k8s"
+    printf "\nUSING k8s"
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
@@ -198,7 +198,7 @@ net.ipv4.ip_forward=1
 net.netfilter.nf_conntrack_max=1048576
 EOF
     else
-        echo "\nnet.ipv4.ip_forward IS ENABLED"
+        printf "\nnet.ipv4.ip_forward IS ENABLED"
     fi
 
     containerd config default \
@@ -242,7 +242,7 @@ EOF
     sudo systemctl daemon-reload
 
 
-    echo "\nAdding plugins"
+    printf "\nAdding plugins"
     ARCH=$(uname -m)
     case $ARCH in
         armv7*) ARCH="arm";;
@@ -254,7 +254,7 @@ EOF
     sudo curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
     sudo tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
 
-    echo "\nInstalling kubernetes"
+    printf "\nInstalling kubernetes"
     if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
         curl -fsSL \
              https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
@@ -274,7 +274,7 @@ EOF
             kubernetes-cni wget curl vim git \
         && apt-mark hold kubelet kubeadm kubectl
 
-    echo "\nAdding modules"
+    printf "\nAdding modules"
     sudo dd status=none of=/etc/modules-load.d/k8s.conf <<EOF
 overlay
 br_netfilter
@@ -285,11 +285,11 @@ EOF
         && modprobe br_netfilter 
 
 
-    echo "\nEnabeling kubelet"
+    printf "\nEnabeling kubelet"
     sudo systemctl enable kubelet
     sudo kubeadm config images pull
 
-    echo "\nCluster INIT"
+    printf "\nCluster INIT"
     kubeadm init --pod-network-cidr 10.244.0.0/16
         #--apiserver-advertise-address=$MASTER \
         #--node-ip $MASTER \
@@ -298,16 +298,16 @@ EOF
 }
 
 function server_k8s_uninstall(){
-    echo "\nResetting kubeadm"
+    printf "\nResetting kubeadm"
     sudo kubeadm reset
 
-    echo "\nUninstalling kubernetes and containerd"
+    printf "\nUninstalling kubernetes and containerd"
     sudo apt-get purge -y kubeadm kubectl kubelet \
             kubernetes-cni containerd \
          && apt-get autoremove -y \
          && apt-get clean -y
 
-    echo "\nRemoving folders"
+    printf "\nRemoving folders"
     sudo rm -rf ~/.kube \
         /etc/cni \
         /etc/kubernetes \
@@ -319,7 +319,7 @@ function server_k8s_uninstall(){
         /var/lib/etcd2/ \
         /var/run/kubernetes
 
-    echo "\nResetting iptables"
+    printf "\nResetting iptables"
     sudo iptables -F \
         && iptables -X \
         && iptables -t nat -F \
@@ -329,7 +329,7 @@ function server_k8s_uninstall(){
         && iptables -t mangle -F \
         && iptables -t mangle -X
 
-        echo "\nReloading"
+        printf "\nReloading"
         sudo systemctl daemon-reload
 }
 
@@ -348,7 +348,7 @@ while getopts "$ARG_S" opt; do
     esac
 done
 
-echo "\nKubernetes installer for Linux"
+printf "\nKubernetes installer for Linux"
 if $HELP
 then
     help
@@ -357,7 +357,7 @@ fi
 
 if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
-    echo "\nNO OPTIONS. Must be agent, server, apply or uninstall "
+    printf "\nNO OPTIONS. Must be agent, server, apply or uninstall "
     help
     exit 2
 
@@ -365,28 +365,28 @@ fi
 
 if $AGENT && $SERVER;
 then
-    echo "\nCannot be both server and agent"
+    printf "\nCannot be both server and agent"
     help
     exit 2
 fi
 
 if $SERVER
 then
-    echo "\nInstalling Server"
+    printf "\nInstalling Server"
     server
 fi
 
 if $AGENT
 then
-    echo "\nInstalling Agent"
-    if [ -z $TOKEN ]; then echo "\nNeeds token"; help; fi
-    if [ -z $MASTER ]; then echo "\nNeeds master"; help; fi
+    printf "\nInstalling Agent"
+    if [ -z $TOKEN ]; then printf "\nNeeds token"; help; fi
+    if [ -z $MASTER ]; then printf "\nNeeds master"; help; fi
     agent $TOKEN $MASTER
 fi
 
 if $APPLY
 then
-    echo "\nConfiguring Server and Applying core features"
+    printf "\nConfiguring Server and Applying core features"
     mkdir -p $HOME/.kube
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -399,9 +399,9 @@ fi
 
 if $UNINSTALL
 then
-    echo "\nUninstalling Server"
+    printf "\nUninstalling Server"
     server_k8s_uninstall
     exit 0
 fi
 
-echo "\nNo more Tasks!"
+printf "\nNo more Tasks!"
