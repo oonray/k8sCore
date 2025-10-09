@@ -8,8 +8,8 @@ if [ "$EUID" -ne 0 ]
 fi
 
 KMNT="k8s"
-ARG_S='hsa3t:k:m'
-ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-3]k3s [-t]token [-m]master_addr"
+ARG_S='hsauk3t:m:'
+ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-u]uninstall [-k]apply [-3]k3s [-t]token [-m]master_addr"
 
 STORE_D="/mnt/storage"
 MNTS_D="$(sudo lsblk | grep "$STORE_D")"
@@ -339,11 +339,11 @@ function main(){
         case "$opt" in
             s) SERVER=true ;;
             a) AGENT=true ;;
-            t) TOKEN=$OPTARG ;;
-            3) KMNT="k3s";K3S=true ;;
-            m) MASTER=$OPTARG ;;
-            k) APPLY=true ;;
             u) UNINSTALL=true ;;
+            k) APPLY=true ;;
+            3) KMNT="k3s";K3S=true ;;
+            t) TOKEN=$OPTARG ;;
+            m) MASTER=$OPTARG ;;
             h) ;&
             *) help;;
         esac
@@ -354,7 +354,12 @@ function main(){
         echo "Cannot be both server and agent"
         help
     fi
+    if [ ! $AGENT && ! $SERVER ] && [ ! $UNINSTALL || !$APPLY ]
+    then
+        echo "NO OPTIONS. Must be agent, server, apply or uninstall "
+        help
 
+    fi
     if $SERVER
     then
         echo "Installing Server"
@@ -387,7 +392,10 @@ function main(){
     then
         echo "Uninstalling Server"
         server_k8s_uninstall
+        exit 0
     fi
+
+    echo "No more Tasks!"
 }
 
 main
