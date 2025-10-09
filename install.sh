@@ -5,6 +5,7 @@ if [ "$EUID" -ne 0 ]
   then printf "\nPlease run with sudo\n"
   exit
 fi
+ARCH=$(uname -m)
 
 KMNT="k8s"
 ARG_S="hsaukKt:m:"
@@ -13,19 +14,20 @@ ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-u]uninstall 
 STORE_D="/mnt/storage"
 MNTS_D="$(sudo lsblk | grep "$STORE_D")"
 
-MNTL_DEV=$(sudo lsblk | grep -E "50G.*disk" | awk '{print $1}')
-MNTK_D="$STORE_D/$KMNT" #69
-
+MNTK_DEV=$(sudo lsblk | grep -E "50G.*disk" | awk '{print $1}')
+MNTK_D="$STORE_D/$KMNT"
 CNT_D="$MNTK_D/containerd"
-CNT_C="/etc/containerd/config.toml"
-
 DATA_D="$MNTK_D/data"
 L_DATA_D="$MNTK_D/local"
 ARGO_D="$MNTK_D/argocd"
 
+CNT_C="/etc/containerd/config.toml"
+CNT_S="unix:///var/run/containerd/containerd.sock"
+CNT_F="$CNT_C"
+
 MNTL_DEV=$(sudo lsblk | grep -E "100G.*disk" | awk '{print $1}')
 MNTL_D="/mnt/storage/longhorn" #69
-LONG_D="$MNTL_D/longhorn/data" #69
+LONG_D="$MNTL_D/data" #69
 
 SERVER=false
 AGENT=false
@@ -39,10 +41,6 @@ G_URL="https://github.com/oonray/k8sCore"
 BIN_DIR=/usr/local/bin
 SYSTEMD_DIR=/etc/systemd/system
 
-CNT_S="unix:///var/run/containerd/containerd.sock"
-CNT_F="/etc/containerd/config.toml"
-
-ARCH=$(uname -m)
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/\n" $5}' )
 
