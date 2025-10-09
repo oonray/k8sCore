@@ -297,8 +297,11 @@ function server_k8s_uninstall(){
         /var/lib/kubelet \
         /var/lib/etcd2/ \
         /var/run/kubernetes \
-        $MNTK_D/* \
-        $MTL_D/*
+        $CNT_D \
+        $DATA_D \
+        $L_DATA_D \
+        $LONG_D \
+        $ARGO_D
 
     printf "\nResetting iptables\n"
     sudo iptables -F \
@@ -386,4 +389,3 @@ then
 fi
 
 printf "\nNo more Tasks!\n"
-
