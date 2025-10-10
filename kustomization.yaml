@@ -5,6 +5,7 @@ resources:
   - https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
   - https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.30.0/controller.yaml
   - metallb
+  - traefik/traefik.yaml
   - argocd
   - longhorn
 patches:
