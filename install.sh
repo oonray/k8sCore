@@ -59,6 +59,11 @@ if [ ! -n $MASTER]; then
 MASTER=$( printf $INET | awk '{print $1 "." $2 "." $3 ".\n" $4}' )
 fi
 
+function help(){
+    printf $ARG_H
+    exit 2
+}
+
 function fix_name(){
     printf "\n$@\n" | sed -e 's/[][!#$%&()*;<=>?\_`{|}/[:space:]]//g;'
 }
@@ -113,6 +118,7 @@ EOF
 function dirs(){
     mount
 
+    printf "\nAdding folders\n"
     if [ -d "$STORE_D" ]
     then
         sudo mkdir -p $CNT_D
@@ -128,12 +134,46 @@ function dirs(){
     fi
 }
 
-function help(){
-    printf $ARG_H
-    exit 2
+function rmdirs(){
+    printf "\nRemoving folders\n"
+    if [ -d "$STORE_D" ]
+    then
+        sudo rm -rf $CNT_D
+        sudo rm -rf $DATA_D
+        sudo rm -rf $L_DATA_D
+        sudo rm -rf $LONG_D #69
+        if $SERVER
+        then
+            sudo rm -rf $ARGO_D
+        fi
+    fi
+    sudo rm -rf ~/.kube \
+        /etc/cni \
+        /etc/kubernetes \
+        /etc/apparmor.d/docker \
+        /etc/systemd/system/etcd* \
+        /var/lib/dockershim \
+        /var/lib/etcd \
+        /var/lib/kubelet \
+        /var/lib/etcd2/ \
+        /var/run/kubernetes
+
+    sudo ls -lah $MNTK_D
+    sudo ls -lah $MNTL_D
+}
+
+
+function server(){
+    dirs
+    server_k8s_install
 }
 
 function agent(){
+    dirs
+    agent_k8s_install
+}
+
+function agent_k3s(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
@@ -142,12 +182,6 @@ function agent(){
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m) 
-}
-
-function server(){
-    dirs
-    server_k8s
-    sudo reboot
 }
 
 function server_k3s(){
@@ -159,32 +193,15 @@ function server_k3s(){
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m)
-
 }
 
-
-function server_k8s(){
-    printf "\nUSING k8s\n"
+function install_containerd(){
+    printf "\nInstalling containerd\n"
     sudo apt-get install -y containerd sudo \
          apt-transport-https ca-certificates curl gpg 
 
-
-    sudo systemctl stop apparmor
-    sudo systemctl disable apparmor
-
-    if [ ! $(sudo sysctl net.ipv4.ip_forward | awk '{print $3}') ];
-    then
-        sudo dd status=none of=/etc/sysctl.d/forward.conf <<EOF
-net.ipv4.ip_forward=1
-net.netfilter.nf_conntrack_max=1048576
-EOF
-    else
-        printf "\nnet.ipv4.ip_forward IS ENABLED\n"
-    fi
-
-    printf "\nInstalling containerd\n"
     containerd config default \
-        | sudo dd status=none of=$CNT_F
+        | sudo dd status=none of=$CNT_C
 
     sed -i -e \
         's/SystemdCgroup = false/SystemdCgroup = true/g' \
@@ -195,12 +212,36 @@ EOF
         $CNT_C
 
     sudo systemctl daemon-reload
-
-    sudo systemctl restart containerd
     sudo systemctl enable containerd
+    sudo systemctl restart containerd
+}
 
-    sudo swapoff -a
+function uninstall_containerd(){
+    printf "\nUnInstalling containerd\n"
+    sudo systemctl stop containerd
+    sudo systemctl disable containerd
+
+    sudo apt-get purge -y containerd
+    sudo rm -rf $CNT_C
+}
+
+function disable_apparmour(){
+    printf "\nDisabeling apparmor\n"
+    sudo systemctl stop apparmor
+    sudo systemctl disable apparmor
     sudo systemctl daemon-reload
+}
+
+function set_forward(){
+    if [ ! $(sudo sysctl net.ipv4.ip_forward | awk '{print $3}') ];
+    then
+        sudo dd status=none of=/etc/sysctl.d/forward.conf <<EOF
+net.ipv4.ip_forward=1
+net.netfilter.nf_conntrack_max=1048576
+EOF
+    else
+        printf "\nnet.ipv4.ip_forward IS ENABLED\n"
+    fi
 
     sudo dd status=none of=/etc/sysctl.d/kubernetes.conf<<EOF
 net.ipv4.ip_forward = 1
@@ -210,8 +251,10 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 
     sudo systemctl daemon-reload
+}
 
-
+function install_kubernetes(){
+    printf "\nInstalling kubernetes\n"
     printf "\nAdding plugins\n"
     ARCH=$(uname -m)
     case $ARCH in
@@ -224,7 +267,7 @@ EOF
     sudo curl -o /tmp/cni-plugin.tgz -L https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-$ARCH-v1.7.1.tgz
     sudo tar -C /opt/cni/bin -xzf /tmp/cni-plugin.tgz
 
-    printf "\nInstalling kubernetes\n"
+    printf "\nAdding repo\n"
     if [ ! -s "/etc/apt/keyrings/kubernetes-apt-keyring.gpg" ];then
         curl -fsSL \
              https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key \
@@ -239,6 +282,8 @@ EOF
     fi
 
     sudo systemctl daemon-reload
+
+    printf "\nInstalling\n"
     sudo apt-get update \
         && apt-get install -y kubeadm kubectl kubelet \
             kubernetes-cni wget curl vim git \
@@ -254,53 +299,23 @@ EOF
         && modprobe overlay \
         && modprobe br_netfilter 
 
-
     printf "\nEnabeling kubelet\n"
     sudo systemctl enable kubelet
     sudo kubeadm config images pull
-
-    printf "\nCluster INIT\n"
-    kubeadm init \
-        --pod-network-cidr 10.244.0.0/16 \
-        --service-cidr=10.243.0.0/16 \
-        --apiserver-advertise-address=$MASTER
-        #--control-plane-endpoint=$MASTER \
-
 }
 
-function server_k8s_uninstall(){
-    printf "\nResetting kubeadm\n"
+function uninstall_kubernetes(){
+    printf "\nUninstalling kubernetes\n"
     sudo kubeadm reset
 
-    printf "\nUninstalling kubernetes and containerd\n"
     sudo apt-get purge -y --allow-change-held-packages \
             kubeadm kubectl kubelet \
             kubernetes-cni containerd \
          && apt-get autoremove -y \
          && apt-get clean -y
+}
 
-    printf "\nRemoving folders\n"
-    sudo rm -rf ~/.kube \
-        /etc/cni \
-        /etc/kubernetes \
-        /etc/apparmor.d/docker \
-        /etc/systemd/system/etcd* \
-        /var/lib/dockershim \
-        /var/lib/etcd \
-        /var/lib/kubelet \
-        /var/lib/etcd2/ \
-        /var/run/kubernetes \
-        $CNT_D \
-        $DATA_D \
-        $L_DATA_D \
-        $LONG_D \
-        $ARGO_D \
-        "$MNTK_D/*" \
-        "$MNTL_D/*"
-
-    sudo ls -lah $MNTK_D
-    sudo ls -lah $MNTL_D
-
+function reset_iptables(){
     printf "\nResetting iptables\n"
     sudo iptables -F \
         && iptables -X \
@@ -310,9 +325,55 @@ function server_k8s_uninstall(){
         && iptables -t raw -X \
         && iptables -t mangle -F \
         && iptables -t mangle -X
+}
 
-        printf "\nReloading\n"
-        sudo systemctl daemon-reload
+function server_k8s_install(){
+    printf "\nUSING k8s\n"
+
+    disable_apparmour
+    set_forward
+
+    install_containerd
+
+    sudo swapoff -a
+    sudo systemctl daemon-reload
+
+    install_kubernetes
+
+    printf "\nCluster INIT\n"
+    kubeadm init \
+        --pod-network-cidr 10.244.0.0/16 \
+        --service-cidr=10.243.0.0/16 \
+        --apiserver-advertise-address=$MASTER
+        #--control-plane-endpoint=$MASTER \
+}
+
+function server_k8s_uninstall(){
+    printf "\nResetting kubeadm\n"
+
+    uninstall_kubernetes
+    uninstall_containerd
+
+    rmdirs
+
+    reset_iptables
+
+    printf "\nReloading\n"
+    sudo systemctl daemon-reload
+}
+
+function agent_k8s_install(){
+    printf "\nUSING k8s\n"
+
+    disable_apparmour
+    set_forward
+
+    install_containerd
+
+    sudo swapoff -a
+    sudo systemctl daemon-reload
+
+    install_kubernetes
 }
 
 #MAIN
