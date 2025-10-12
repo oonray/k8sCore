@@ -60,7 +60,7 @@ MASTER=$( printf $INET | awk '{print $1 "." $2 "." $3 ".\n" $4}' )
 fi
 
 function help(){
-    printf $ARG_H
+    printf "\n%s\n" $ARG_H
     exit 2
 }
 
