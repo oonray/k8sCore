@@ -96,7 +96,6 @@ EOF
         fi
         if [ -z $MNTL_DEV ];then
             printf "\nNO 100G Disk found to mount at $MNTL_D\n"
-            exit 1
         else
             local MNTL_DEV_P="/dev/${MNTK_DEV}1"
             local MNTL_UUID=$(sudo blkid $MNTL_DEV_P | awk '{print $2}')
