@@ -2,13 +2,13 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: cluster-system
+  name: argocd
   labels:
-    name: cluster-system
+    name: argocd
 ---
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: argocd
+  name: traefik
   labels:
-    name: argocd
+    name: traefik
