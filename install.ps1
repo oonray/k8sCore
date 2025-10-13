@@ -137,17 +137,14 @@ $url=@{
 }
 
 function InstallWinget(){
+    Write-Host "Installing Chocolatey ..."
     if(!(Get-Command -Name choco -ErrorAction SilentlyContinue)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iwr https://community.chocolatey.org/install.ps1 -UseBasicParsing | iex
     }
     . $profile
 }
 
-if($winget -Or $install -Or $all){
-    installWinget
-}
-
-if($pwsh -Or $install -Or $all){
+function installpowershell7(){
     installWinget
     Write-Host "Installing PowerShell 7 ..."
     choco install -y pwsh
@@ -166,12 +163,9 @@ if($pwsh -Or $install -Or $all){
         }
 
     New-ItemProperty @ssh_shell
-
 }
 
-
-
-if($ssh -Or $install -Or $all){
+function installSSH(){
     Write-Host "Installing SSH ..."
     Add-WindowsCapability -Online -Name "*ssh*"
     Write-Host "Configuring SSH ..."
@@ -209,6 +203,20 @@ if($ssh -Or $install -Or $all){
     Write-Host "Restarting SSH services ..."
     Restart-Service sshd
     Restart-Service ssh-agent
+
+}
+
+if($winget -Or $install -Or $all){
+    installWinget
+}
+
+if($pwsh -Or $install -Or $all){
+    installpowershell7
+
+}
+
+if($ssh -Or $install -Or $all){
+    installSSH
 }
 
 if($kube -Or $all){

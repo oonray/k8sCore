@@ -8,5 +8,4 @@ resources:
   - traefik/traefik.yaml
   - argocd
   - longhorn
-patches:
-  - path: patches/kube-proxy.yaml
+  - patches/kube-proxy.yaml
