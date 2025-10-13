@@ -438,6 +438,7 @@ then
     #kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    kubectl apply -f https://raw.githubusercontent.com/oonray/k8sCore/refs/heads/main/traefik/traefik.yaml
 fi
 
 if $UNINSTALL
