@@ -21,6 +21,7 @@ DATA_D="$MNTK_D/data"
 L_DATA_D="$MNTK_D/local"
 ARGO_D="$MNTK_D/argocd"
 
+CNT_C="/etc/containerd/config.toml"
 CNT_S="unix:///var/run/containerd/containerd.sock"
 CNT_F="$CNT_C"
 
