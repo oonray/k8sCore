@@ -439,6 +439,10 @@ then
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     kubectl apply -f https://raw.githubusercontent.com/oonray/k8sCore/refs/heads/main/traefik/traefik.yaml
+
+    kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e "s/strictARP: false/strictARP: true/" | \
+    kubectl apply -f - -n kube-system
 fi
 
 if $UNINSTALL
