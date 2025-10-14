@@ -35,6 +35,7 @@ APPLY=false
 UNINSTALL=false
 K3S=false
 HELP=false
+INSTALL=false
 
 G_URL="https://github.com/oonray/k8sCore"
 
@@ -384,6 +385,7 @@ while getopts "$ARG_S" opt; do
         a) AGENT=true ;;
         u) UNINSTALL=true ;;
         k) APPLY=true ;;
+        I) INSTALL=true ;;
         K) KMNT="k3s";K3S=true ;;
         t) TOKEN=$OPTARG ;;
         m) MASTER=$OPTARG ;;
@@ -406,11 +408,17 @@ then
 
 fi
 
-if $AGENT && $SERVER;
+if $AGENT && $SERVER
 then
     printf "\nCannot be both server and agent\n"
     help
     exit 2
+fi
+
+if $AGENT || $SERVER || $INSTALL
+then
+  sudo apt-get install -y util-linux \
+      tmux jq yq neovim vim
 fi
 
 if $SERVER
