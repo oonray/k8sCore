@@ -227,6 +227,9 @@ if($kube -Or $all){
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
     .\node.ps1 -KubernetesVersion v1.33.4
 
+    iwr -OutFile cni-plugins-windows-amd64-v1.8.0.tgz https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-windows-amd64-v1.8.0.tgz
+    tar -C /opt/cni/bin -xzf cni-plugins-windows-amd64-v1.8.0.tgz
+
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){
             Write-Host "Joining $master ..."
