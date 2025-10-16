@@ -223,6 +223,24 @@ if($kube -Or $all){
     Write-Host "Installing Contained ..."
     iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
     .\containerd.ps1 -skipHypervisorSupportCheck
+
+    (((containerd config default)  
+    -replace 'SystemdCgroup = false','SystemdCgroup = true') 
+    -replace 'registry.k8s.io/pause:3.6','registry.k8s.io/pause:3.9') | Set-Content "C:\Program Files\containerd\config.toml"
+
+    sed -i -e \
+        's/SystemdCgroup = false/SystemdCgroup = true/g' \
+        $CNT_C
+
+    sed -i -e \
+        's/registry.k8s.io\/pause:3.6/registry.k8s.io\/pause:3.9/g' \
+        $CNT_C
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable containerd
+    sudo systemctl restart containerd
+
+    
     Write-Host "Preparing Node ..."
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
     .\node.ps1 -KubernetesVersion v1.33.4
