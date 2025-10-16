@@ -286,9 +286,12 @@ EOF
 
     printf "\nInstalling\n"
     sudo apt-get update \
-        && apt-get install -y kubeadm kubectl kubelet \
+        && apt-get install -y open-iscsi kubeadm kubectl kubelet \
             kubernetes-cni wget curl vim git \
         && apt-mark hold kubelet kubeadm kubectl
+
+    sudo systemctl enable iscsid \
+        && systemctl start iscsid
 
     printf "\nAdding modules\n"
     sudo dd status=none of=/etc/modules-load.d/k8s.conf <<EOF
