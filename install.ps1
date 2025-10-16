@@ -224,29 +224,19 @@ if($kube -Or $all){
     iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
     .\containerd.ps1 -skipHypervisorSupportCheck
 
-    (((containerd config default)  
-    -replace 'SystemdCgroup = false','SystemdCgroup = true') 
-    -replace 'registry.k8s.io/pause:3.6','registry.k8s.io/pause:3.9') | Set-Content "C:\Program Files\containerd\config.toml"
+    containerd config default | Set-Content "C:\Program Files\containerd\config.toml"
 
-    sed -i -e \
-        's/SystemdCgroup = false/SystemdCgroup = true/g' \
-        $CNT_C
+    mkdir "C:\Program Files\containerd\conf"
+    mkdir "C:\\Program Files\\containerd\\cni\\bin"
 
-    sed -i -e \
-        's/registry.k8s.io\/pause:3.6/registry.k8s.io\/pause:3.9/g' \
-        $CNT_C
+    iwr -OutFile "C:\Program Files\containerd\conf\cni.conf" https://raw.githubusercontent.com/microsoft/SDN/refs/heads/master/Kubernetes/flannel/overlay/cni/config/cni.conf
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable containerd
-    sudo systemctl restart containerd
-
-    
     Write-Host "Preparing Node ..."
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
     .\node.ps1 -KubernetesVersion v1.33.4
 
     iwr -OutFile cni-plugins-windows-amd64-v1.8.0.tgz https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-windows-amd64-v1.8.0.tgz
-    tar -C /opt/cni/bin -xzf cni-plugins-windows-amd64-v1.8.0.tgz
+    tar -C "C:\\Program Files\\containerd\\cni\\bin" -xzf cni-plugins-windows-amd64-v1.8.0.tgz
 
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){
