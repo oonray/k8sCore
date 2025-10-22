@@ -96,3 +96,207 @@ data:
 #     - name: default
 #       user:
 #         tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:         kube-proxy
+  namespace:    kube-flannel
+  labels:
+    app: kube-proxy
+data:
+  config.conf: |
+    ----
+    apiVersion: kubeproxy.config.k8s.io/v1alpha1
+    bindAddress: 0.0.0.0
+    bindAddressHardFail: false
+    clientConnection:
+      acceptContentTypes: ""
+      burst: 0
+      contentType: ""
+      kubeconfig: /var/lib/kube-proxy/kubeconfig.conf
+      qps: 0
+    clusterCIDR: 10.244.0.0/16
+    configSyncPeriod: 0s
+    conntrack:
+      maxPerCore: null
+      min: null
+      tcpBeLiberal: false
+      tcpCloseWaitTimeout: null
+      tcpEstablishedTimeout: null
+      udpStreamTimeout: 0s
+      udpTimeout: 0s
+    detectLocal:
+      bridgeInterface: ""
+      interfaceNamePrefix: ""
+    detectLocalMode: ""
+    enableProfiling: false
+    healthzBindAddress: ""
+    hostnameOverride: ""
+    iptables:
+      localhostNodePorts: null
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s
+    ipvs:
+      excludeCIDRs: null
+      minSyncPeriod: 0s
+      scheduler: ""
+      strictARP: true
+      syncPeriod: 0s
+      tcpFinTimeout: 0s
+      tcpTimeout: 0s
+      udpTimeout: 0s
+    kind: KubeProxyConfiguration
+    logging:
+      flushFrequency: 0
+      options:
+        json:
+          infoBufferSize: "0"
+        text:
+          infoBufferSize: "0"
+      verbosity: 0
+    metricsBindAddress: ""
+    mode: "ipvs"
+    nftables:
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s
+    nodePortAddresses: null
+    oomScoreAdj: null
+    portRange: ""
+    showHiddenMetricsForVersion: ""
+    winkernel:
+      enableDSR: false
+      forwardHealthCheckVip: false
+      networkName: ""
+      rootHnsEndpointName: ""
+      sourceVip: ""
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    app: kube-proxy
+  name: kube-proxy-windows
+  namespace: kube-flannel
+data:
+  run-script.ps1: |-
+    $ErrorActionPreference = "Stop";
+
+    # Get newest cni conf file that is not 0-containerd-nat.json or spin until one shows up.
+    # With Docker the kube-proxy pod should not be scheduled to Windows nodes until host networking is configured.
+    # With contianerD host networking is required to schedule any pod including the CNI pods so a basic nat network is
+    #  configured. This network should not be used by kube-proxy.
+    function Get-NetConfFile {
+      while ($true) {
+        if (Test-Path /host/etc/cni/net.d/) {
+          $files = @()
+          $files += Get-ChildItem -Path /host/etc/cni/net.d/ -Exclude "0-containerd-nat.json"
+
+          if ($files.Length -gt 0) {
+            $file = (($files | Sort-Object LastWriteTime | Select-Object -Last 1).Name)
+            Write-Host "Using CNI conf file: $file"
+            return $file
+          }
+        }
+
+        Write-Host "Waiting for CNI file..."
+        Start-Sleep 10
+      }
+    }
+
+    mkdir -force /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount
+    mkdir -force /host/k/kube-proxy
+
+    cp -force /k/kube-proxy/* /host/k/kube-proxy
+    cp -force /var/lib/kube-proxy/* /host/var/lib/kube-proxy
+    cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host/var/lib/kube-proxy/var/run/secrets/kubernetes.io/serviceaccount #FIXME?
+
+    # If live patching kube-proxy, make sure and patch it inside this container, so that the SHA
+    # matches that of what is on the host. i.e. uncomment the below line...
+    # wget <download-path-to-kube-proxy.exe> -outfile k/kube-proxy/kube-proxy.exe
+    cp -force /k/kube-proxy/* /host/k/kube-proxy
+
+    $cniConfFile = Get-NetConfFile
+    $networkName = (Get-Content "/host/etc/cni/net.d/$cniConfFile" | ConvertFrom-Json).name
+    $sourceVip = ($env:POD_IP -split "\.")[0..2] + 0 -join "."
+    yq w -i /host/var/lib/kube-proxy/config.conf winkernel.sourceVip $sourceVip
+    yq w -i /host/var/lib/kube-proxy/config.conf winkernel.networkName $networkName
+    yq w -i /host/var/lib/kube-proxy/config.conf featureGates.WinOverlay true
+    yq w -i /host/var/lib/kube-proxy/config.conf mode "kernelspace"
+    
+    # Start the kube-proxy as a wins process on the host.
+    # Note that this will rename kube-proxy.exe to rancher-wins-kube-proxy.exe on the host!
+    wins cli process run --path /k/kube-proxy/kube-proxy.exe --args "--v=6 --config=/var/lib/kube-proxy/config.conf --hostname-override=$env:NODE_NAME --feature-gates=WinOverlay=true"
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    k8s-app: kube-proxy
+  name: kube-proxy-windows
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kube-proxy-windows
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-proxy-windows
+    spec:
+      serviceAccountName: kube-proxy
+      containers:
+      - command:
+        - pwsh
+        args:
+        - -file
+        - /var/lib/kube-proxy-windows/run-script.ps1
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: sigwindowstools/kube-proxy:VERSION-nanoserver
+        name: kube-proxy
+        volumeMounts:
+        - name: host
+          mountPath: /host
+        - name: wins
+          mountPath: \\.\pipe\rancher_wins
+        - mountPath: /var/lib/kube-proxy
+          name: kube-proxy
+        - mountPath: /var/lib/kube-proxy-windows
+          name: kube-proxy-windows
+      nodeSelector:
+        kubernetes.io/os: windows
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: kube-proxy-windows
+        name: kube-proxy-windows
+      - configMap:
+          name: kube-proxy
+        name: kube-proxy
+      - hostPath:
+          path: /
+        name: host
+      - name: wins
+        hostPath:
+          path: \\.\pipe\rancher_wins
+          type: null
+  updateStrategy:
+    type: RollingUpdate
