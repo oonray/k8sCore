@@ -222,22 +222,21 @@ if($ssh -Or $install -Or $all){
 if($kube -Or $all){
     Write-Host "Installing Contained ..."
     iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
-    .\containerd.ps1
+    .\Install-Containerd.ps1 -ContainerDVersion 1.7.22
 
-    containerd config default | Set-Content "C:\Program Files\containerd\config.toml"
-
-    mkdir "C:\Program Files\containerd\conf"
-    mkdir "C:\\Program Files\\containerd\\cni\\bin"
+    $env:CONTAINERD_CNI_CONF="C:/etc/cni/net.d/"
+    $env:CONTAINERD_CNI_bin="c:/opt/cni/bin"
 
     iwr -OutFile cni.conf https://raw.githubusercontent.com/microsoft/SDN/refs/heads/master/Kubernetes/flannel/overlay/cni/config/cni.conf
-    (((Get-Content cni.conf) -Replace "11.0.0.10", "10.243.0.10") -Replace "11.0.0.0/8","10.243.0.0/8" ) -Replace "192.168.0.0/16","172.16.0.0/16" | Set-Content "C:\Program Files\containerd\conf\cni.conf"
+#    (((Get-Content cni.conf) -Replace "11.0.0.10", "10.243.0.10") -Replace "11.0.0.0/8","10.243.0.0/8" ) -Replace "192.168.0.0/16","172.16.0.0/16" | Set-Content "${env:CONTAINERD_CNI_CONF}/cni.conf"
+    Get-Content cni.conf | Set-Content "${env:CONTAINERD_CNI_CONF}/cni.conf"
 
     Write-Host "Preparing Node ..."
     iwr -OutFile node.ps1 -UseBasicParsing $url.prepare
     .\node.ps1 -KubernetesVersion v1.34.1
 
     iwr -OutFile cni-plugins-windows-amd64-v1.8.0.tgz https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-windows-amd64-v1.8.0.tgz
-    tar -C "C:\\Program Files\\containerd\\cni\\bin" -xzf cni-plugins-windows-amd64-v1.8.0.tgz
+    tar -C $env:CONTAINERD_CNI_bin -xzf cni-plugins-windows-amd64-v1.8.0.tgz
 
     if(![string]::IsNullOrEmpty($master)){
         if(![string]::IsNullOrEmpty($token)){

@@ -448,7 +448,10 @@ then
     #kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    kubectl apply -f https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/kube-flannel-rbac.yml
+
     kubectl apply -f https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/flannel-overlay.yml
+
     kubectl apply -f https://raw.githubusercontent.com/oonray/k8sCore/refs/heads/main/traefik/traefik.yaml
 
     kubectl get configmap kube-proxy -n kube-system -o yaml | \

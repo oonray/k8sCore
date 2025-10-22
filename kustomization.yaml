@@ -8,5 +8,7 @@ resources:
   - traefik/traefik.yaml
   - argocd
   - longhorn
+  - windows-flannel.yaml
 patches:
   - path: patches/kube-proxy.yaml
+  - path: patches/flannel.yaml
