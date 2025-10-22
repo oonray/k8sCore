@@ -4,6 +4,5 @@ namespace: kube-system
 resources:
   - https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
   - https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/flannel-overlay.yml
-  - https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/kube-flannel-rbac.yml
   - https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/kube-proxy.yml
 
