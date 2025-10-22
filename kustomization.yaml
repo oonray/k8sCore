@@ -9,6 +9,6 @@ resources:
   - argocd
   - longhorn
   - windows-flannel.yaml
+  - patches/kube-proxy.yaml
 patches:
-  - path: patches/kube-proxy.yaml
   - path: patches/flannel.yaml
