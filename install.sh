@@ -10,7 +10,6 @@ ARCH=$(uname -m)
 KMNT="k8s"
 ARG_S="hsaukKt:m:"
 ARG_H="USAGE: $(pwd)/$(basename $0) [-h]help [-s]server [-a]agent [-u]uninstall [-k]apply [-K]k3s [-t]token [-m]master_addr"
-
 STORE_D="/mnt/storage"
 MNTS_D="$(sudo lsblk | grep "$STORE_D")"
 
@@ -449,6 +448,7 @@ then
     #kubectl label nodes --all node.kubernetes.io/exclude-from-external-load-balancers-
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    kubectl apply -f https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/flannel-overlay.yml
     kubectl apply -f https://raw.githubusercontent.com/oonray/k8sCore/refs/heads/main/traefik/traefik.yaml
 
     kubectl get configmap kube-proxy -n kube-system -o yaml | \
