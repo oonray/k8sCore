@@ -2,7 +2,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: kube-flannel-cfg
-  namespace: kube-system
 data:
   cni-conf.json: |
     {
@@ -10,6 +9,7 @@ data:
       "plugins": [
         {
           "type": "flannel",
+          "cniVersion": "0.3.1",
           "delegate": {
             "hairpinMode": true,
             "isDefaultGateway": true
