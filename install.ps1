@@ -222,7 +222,7 @@ if($ssh -Or $install -Or $all){
 if($kube -Or $all){
     Write-Host "Installing Contained ..."
     iwr -OutFile containerd.ps1 -UseBasicParsing $url.containerd
-    .\containerd.ps1 -skipHypervisorSupportCheck
+    .\containerd.ps1
 
     containerd config default | Set-Content "C:\Program Files\containerd\config.toml"
 
