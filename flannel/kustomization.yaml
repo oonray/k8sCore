@@ -5,4 +5,5 @@ resources:
   - https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
   - https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/flannel-overlay.yml
   - https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/kube-proxy.yml
-  - ./kube-flannel-cfg.yaml
+patches:
+  - path: ./kube-flannel-cfg.yaml
