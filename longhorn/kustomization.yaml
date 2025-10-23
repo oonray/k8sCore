@@ -1,8 +1,10 @@
+#longhorn
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: longhorn-system
 resources:
   - https://raw.githubusercontent.com/longhorn/longhorn/v1.8.1/deploy/longhorn.yaml
+  - enctypted.yaml
   - ingress.yaml
 patches:
   - path: ./patch.yaml
