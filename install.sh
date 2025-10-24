@@ -348,7 +348,7 @@ function server_k8s_install(){
         --pod-network-cidr 10.244.0.0/16 \
         --service-cidr=10.243.0.0/16 \
         --apiserver-advertise-address=$MASTER
-        #--control-plane-endpoint=$MASTER \
+        #--control-plane-endpoint=$MASTER \ 
 }
 
 function server_k8s_uninstall(){
@@ -432,9 +432,7 @@ fi
 if $AGENT
 then
     printf "\nInstalling Agent\n"
-    if [ -z $TOKEN ]; then printf "\nNeeds token\n"; help; fi
-    if [ -z $MASTER ]; then printf "\nNeeds master\n"; help; fi
-    agent $TOKEN $MASTER
+    agent
 fi
 
 if $APPLY
