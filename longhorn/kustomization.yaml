@@ -4,6 +4,5 @@ kind: Kustomization
 namespace: longhorn
 resources:
   - https://raw.githubusercontent.com/longhorn/longhorn/v1.8.1/deploy/longhorn.yaml
-  - enctypted.yaml
   - ingress.yaml
 
