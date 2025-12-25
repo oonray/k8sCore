@@ -10,8 +10,8 @@ resources:
   - https://raw.githubusercontent.com/traefik/traefik/v3.5/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
   - https://github.com/traefik/traefik-helm-chart/releases/download/v37.2.0/traefik.yaml
 
-  - metallb
   - traefik
+  - metallb
   - argocd
   - longhorn
   - longhorn/encrypted.yaml
