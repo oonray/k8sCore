@@ -1,3 +1,9 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Namespace
+metadata:
+  name: traefik
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
