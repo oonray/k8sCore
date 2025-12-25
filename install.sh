@@ -286,7 +286,7 @@ EOF
     printf "\nInstalling\n"
     sudo apt-get update \
         && apt-get install -y open-iscsi kubeadm kubectl kubelet \
-            kubernetes-cni wget curl vim git \
+            kubernetes-cni wget curl vim git dmsetup \
         && apt-mark hold kubelet kubeadm kubectl
 
     sudo systemctl enable iscsid \
