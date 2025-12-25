@@ -8,7 +8,7 @@ reclaimPolicy: Retain
 volumeBindingMode: Immediate
 parameters:
   numberOfReplicas: "1"
-  encrypted: true
+  encrypted: "true"
   staleReplicaTimeout: "2880" # 48 hours in minutes
   fsType: "ext4"
 ---
@@ -22,6 +22,6 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 parameters:
   numberOfReplicas: "1"
-  encrypted: true
+  encrypted: "true"
   staleReplicaTimeout: "2880" # 48 hours in minutes
   fsType: "ext4"
