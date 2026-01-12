@@ -165,15 +165,15 @@ function rmdirs(){
 
 function server(){
     dirs
-    server_k8s_install
+    server_k3s_install
 }
 
 function agent(){
     dirs
-    agent_k8s_install
+    agent_k3s_install
 }
 
-function agent_k3s(){
+function agent_k3s_install(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
@@ -184,7 +184,7 @@ function agent_k3s(){
         --node-label platform=$(uname -m) 
 }
 
-function server_k3s(){
+function server_k3s_install(){
     printf "\nUSING k3s\n"
     curl -sfL "https://get.k3s.io" | sh -s - \
         server --data-dir $DATA_D --secrets-encryption \
