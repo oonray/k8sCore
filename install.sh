@@ -32,7 +32,7 @@ SERVER=false
 AGENT=false
 APPLY=false
 UNINSTALL=false
-K3S=false
+K3S=true
 HELP=false
 INSTALL=false
 
@@ -165,12 +165,12 @@ function rmdirs(){
 
 function server(){
     dirs
-    server_k3s_install
+    server_k8s_install
 }
 
 function agent(){
     dirs
-    agent_k3s_install
+    agent_k8s_install
 }
 
 function agent_k3s(){
