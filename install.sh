@@ -165,12 +165,12 @@ function rmdirs(){
 
 function server(){
     dirs
-    server_k8s_install
+    server_k3s_install
 }
 
 function agent(){
     dirs
-    agent_k8s_install
+    agent_k3s_install
 }
 
 function agent_k3s(){
@@ -460,7 +460,7 @@ fi
 if $UNINSTALL
 then
     printf "\nUninstalling Server\n"
-    server_k8s_uninstall
+    server_k3s_uninstall
     exit 0
 fi
 
