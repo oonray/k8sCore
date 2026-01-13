@@ -189,6 +189,7 @@ function server_k3s_install(){
     curl -sfL "https://get.k3s.io" | sh -s - \
         server --data-dir $DATA_D --secrets-encryption \
         --cluster-domain kube --default-local-storage-path $L_DATA_D \
+        --token $1 \
         --node-label type=server \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
