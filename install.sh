@@ -44,6 +44,8 @@ SYSTEMD_DIR=/etc/systemd/system
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/\n" $5}' )
 
+TOKEN="abcd"
+
 #
 # CAN be set by ENV
 #
@@ -177,7 +179,7 @@ function agent_k3s_install(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
-        agent --token $1 --server https://$2:6443 --data-dir $DATA_D \
+        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D \
         --node-label type=agent \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
@@ -187,13 +189,18 @@ function agent_k3s_install(){
 function server_k3s_install(){
     printf "\nUSING k3s\n"
     curl -sfL "https://get.k3s.io" | sh -s - \
-        server --data-dir $DATA_D --secrets-encryption \
-        --cluster-domain kube --default-local-storage-path $L_DATA_D \
-        --token $1 \
+        server --data-dir $DATA_D\
+        --secrets-encryption \
+        --cluster-domain kube  \
+        --default-local-storage-path $L_DATA_D \
+        --token $TOKEN \
         --node-label type=server \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
-        --node-label platform=$(uname -m)
+        --node-label platform=$(uname -m) \
+        --disable-cloud-controller \
+        --cluster-init \
+        --write-kubeconfig $HOME/.kube/config
 }
 
 function install_containerd(){
