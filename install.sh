@@ -5,6 +5,7 @@ if [ "$EUID" -ne 0 ]
   then printf "\nPlease run with sudo\n"
   exit
 fi
+
 ARCH=$(uname -m)
 
 KMNT="k8s"
