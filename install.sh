@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o noglob
 
-if [ "$EUID" -ne 0 ]
+if [[ "$EUID" -ne 0 ]]
   then printf "\nPlease run with sudo\n"
   exit
 fi
@@ -45,7 +45,7 @@ SYSTEMD_DIR=/etc/systemd/system
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/\n" $5}' )
 
-TOKEN="abcd"
+TOKEN=""
 
 #
 # CAN be set by ENV
