@@ -3,7 +3,7 @@ set -o noglob
 
 if [[ "$EUID" -ne 0 ]]; then
   printf "\nPlease run with sudo\n"
-  exit
+  return
 fi
 
 ARCH=$(uname -m)
@@ -65,7 +65,7 @@ fi
 
 function help(){
     printf "\n%s\n" $ARG_H
-    exit 2
+    return 2
 }
 
 function fix_name(){
@@ -83,13 +83,13 @@ function mount(){
 
         if [ -z $MNTK_DEV ];then
             printf "\nNO 50G Disk found to mount at $MNTK_D\n"
-            exit 1
+            return 1
         else
             local MNTK_DEV_P="/dev/${MNTK_DEV}1"
             local MNTK_UUID=$(sudo blkid $MNTK_DEV_P | awk '{print $2}')
             if [ -z $MNTK_UUID ]; then
                 printf "\n$MNTL_DEV_P Not found\n"
-                exit 1
+                return 1
             else
                 if [ ! -z $(sudo grep -E "$MNTK_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
@@ -105,7 +105,7 @@ EOF
             local MNTL_UUID=$(sudo blkid $MNTL_DEV_P | awk '{print $2}')
             if [ -z $MNTL_UUID ]; then
                 printf "\n$MNTL_DEV_P Not found\n"
-                exit 1
+                return 1
             else
                 if [ ! -z $(sudo grep -E "$MNTL_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
@@ -424,28 +424,28 @@ printf "\nKubernetes installer for Linux\n"
 if $HELP
 then
     help
-    exit 0
+    return 0
 fi
 
 if $UNINSTALL
 then
     printf "\nUninstalling Server\n"
     uninstall
-    exit 0
+    return 0
 fi
 
 if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
     printf "\nNO OPTIONS. Must be agent, server, apply or uninstall \n"
     help
-    exit 2
+    return 2
 fi
 
 if $AGENT && $SERVER
 then
     printf "\nCannot be both server and agent\n"
     help
-    exit 2
+    return 2
 fi
 
 if $AGENT || $SERVER || $INSTALL
