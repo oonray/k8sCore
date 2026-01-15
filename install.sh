@@ -1,8 +1,8 @@
 #!/bin/bash
 set -o noglob
 
-if [[ "$EUID" -ne 0 ]]
-  then printf "\nPlease run with sudo\n"
+if [[ "$EUID" -ne 0 ]]; then
+  printf "\nPlease run with sudo\n"
   exit
 fi
 
@@ -165,7 +165,6 @@ function rmdirs(){
     sudo ls -lah $MNTL_D
 }
 
-
 function server(){
     dirs
     if $KMNT; then
@@ -217,7 +216,6 @@ function server_k3s_install(){
         --node-label platform=$(uname -m) \
         --disable-cloud-controller
 }
-
 
 function server_k3s_uninstall(){
     k3s-killall.sh
@@ -480,9 +478,7 @@ then
 
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     kubectl apply -f https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/kube-flannel-rbac.yml
-
     kubectl apply -f https://github.com/kubernetes-sigs/sig-windows-tools/releases/download/v0.1.6/flannel-overlay.yml
-
     kubectl apply -f https://raw.githubusercontent.com/oonray/k8sCore/refs/heads/main/traefik/traefik.yaml
 
     kubectl get configmap kube-proxy -n kube-system -o yaml | \
