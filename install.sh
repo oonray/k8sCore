@@ -45,6 +45,8 @@ SYSTEMD_DIR=/etc/systemd/system
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/\n" $5}' )
 
+MASTER=""
+
 #
 # CAN be set by ENV
 #
