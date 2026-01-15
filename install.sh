@@ -185,12 +185,12 @@ function agent(){
 }
 
 function uninstall(){
-    rmdirs
     if $KMNT; then
     server_k3s_uninstall
     else
     server_k8s_uninstall
     fi
+    rmdirs
 }
 
 function agent_k3s_install(){
@@ -386,8 +386,6 @@ function server_k8s_uninstall(){
     uninstall_kubernetes
     uninstall_containerd
 
-    rmdirs
-
     reset_iptables
 
     printf "\nReloading\n"
@@ -431,12 +429,18 @@ then
     exit 0
 fi
 
+if $UNINSTALL
+then
+    printf "\nUninstalling Server\n"
+    uninstall
+    exit 0
+fi
+
 if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
     printf "\nNO OPTIONS. Must be agent, server, apply or uninstall \n"
     help
     exit 2
-
 fi
 
 if $AGENT && $SERVER
@@ -484,13 +488,6 @@ then
     kubectl get configmap kube-proxy -n kube-system -o yaml | \
     sed -e "s/strictARP: false/strictARP: true/" | \
     kubectl apply -f - -n kube-system
-fi
-
-if $UNINSTALL
-then
-    printf "\nUninstalling Server\n"
-    uninstall
-    exit 0
 fi
 
 printf "\nNo more Tasks!\n"
