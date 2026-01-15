@@ -180,7 +180,7 @@ function agent_k3s_install(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
-        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D \
+        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D/k3s \
         --node-label type=agent \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
@@ -190,7 +190,7 @@ function agent_k3s_install(){
 function server_k3s_install(){
     printf "\nUSING k3s\n"
     curl -sfL "https://get.k3s.io" | sh -s - \
-        server --data-dir $DATA_D\
+        server --data-dir $DATA_D/storage\
         --secrets-encryption \
         --cluster-domain kube  \
         --default-local-storage-path $L_DATA_D \
@@ -200,7 +200,6 @@ function server_k3s_install(){
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m) \
         --disable-cloud-controller \
-        --cluster-init \
         --write-kubeconfig $HOME/.kube/config
 }
 
