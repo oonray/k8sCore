@@ -168,19 +168,36 @@ function rmdirs(){
 
 function server(){
     dirs
+    if $KMNT; then
     server_k3s_install
+    else
+    server_k8s_install
+    fi
 }
 
 function agent(){
     dirs
+    if $KMNT; then
     agent_k3s_install
+    else
+    agent_k8s_install
+    fi
+}
+
+function uninstall(){
+    rmdirs
+    if $KMNT; then
+    server_k3s_uninstall
+    else
+    server_k8s_uninstall
+    fi
 }
 
 function agent_k3s_install(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
-        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D/k3s \
+        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D \
         --node-label type=agent \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
@@ -190,7 +207,7 @@ function agent_k3s_install(){
 function server_k3s_install(){
     printf "\nUSING k3s\n"
     curl -sfL "https://get.k3s.io" | sh -s - \
-        server --data-dir $DATA_D/storage\
+        server --data-dir $DATA_D\
         --secrets-encryption \
         --cluster-domain kube  \
         --default-local-storage-path $L_DATA_D \
@@ -199,6 +216,12 @@ function server_k3s_install(){
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m) \
         --disable-cloud-controller
+}
+
+
+function server_k3s_uninstall(){
+    k3s-killall.sh
+    k3s-uninstall.sh
 }
 
 function install_containerd(){
@@ -466,7 +489,7 @@ fi
 if $UNINSTALL
 then
     printf "\nUninstalling Server\n"
-    server_k3s_uninstall
+    uninstall
     exit 0
 fi
 
