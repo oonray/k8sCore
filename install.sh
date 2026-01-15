@@ -194,7 +194,7 @@ function agent_k3s_install(){
     printf "\nInstalling agent\n"
     dirs
     curl -sfL "https://get.k3s.io" | sh -s - \
-        agent --token $TOKEN --server https://$2:6443 --data-dir $DATA_D \
+        agent --token $TOKEN --server https://$MASTER:6443 --data-dir $DATA_D \
         --node-label type=agent \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
