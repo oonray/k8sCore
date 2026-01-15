@@ -194,13 +194,11 @@ function server_k3s_install(){
         --secrets-encryption \
         --cluster-domain kube  \
         --default-local-storage-path $L_DATA_D \
-        --token $TOKEN \
         --node-label type=server \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m) \
         --disable-cloud-controller \
-        --write-kubeconfig $HOME/.kube/config
 }
 
 function install_containerd(){
