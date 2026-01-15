@@ -63,7 +63,7 @@ fi
 
 function help(){
     printf "\n%s\n" $ARG_H
-    return 2
+    exit
 }
 
 function fix_name(){
@@ -81,13 +81,13 @@ function mount(){
 
         if [ -z $MNTK_DEV ];then
             printf "\nNO 50G Disk found to mount at $MNTK_D\n"
-            return 1
+            exit
         else
             local MNTK_DEV_P="/dev/${MNTK_DEV}1"
             local MNTK_UUID=$(sudo blkid $MNTK_DEV_P | awk '{print $2}')
             if [ -z $MNTK_UUID ]; then
                 printf "\n$MNTL_DEV_P Not found\n"
-                return 1
+                exit
             else
                 if [ ! -z $(sudo grep -E "$MNTK_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
@@ -103,7 +103,7 @@ EOF
             local MNTL_UUID=$(sudo blkid $MNTL_DEV_P | awk '{print $2}')
             if [ -z $MNTL_UUID ]; then
                 printf "\n$MNTL_DEV_P Not found\n"
-                return 1
+                exit
             else
                 if [ ! -z $(sudo grep -E "$MNTL_UUID") ]; then
                     sudo dd status=none oflag=append of=/etc/fstab <<EOF
