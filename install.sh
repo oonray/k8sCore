@@ -184,7 +184,7 @@ function agent_k3s_install(){
         --node-label type=agent \
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
-        --node-label platform=$(uname -m) 
+        --node-label platform=$(uname -m)
 }
 
 function server_k3s_install(){
@@ -198,7 +198,7 @@ function server_k3s_install(){
         --node-label name=$(uname -n) \
         --node-label os=$(uname -s) \
         --node-label platform=$(uname -m) \
-        --disable-cloud-controller \
+        --disable-cloud-controller
 }
 
 function install_containerd(){
