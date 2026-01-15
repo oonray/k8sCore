@@ -3,7 +3,7 @@ set -o noglob
 
 if [[ "$EUID" -ne 0 ]]; then
   printf "\nPlease run with sudo\n"
-  return
+  exit
 fi
 
 ARCH=$(uname -m)
@@ -422,7 +422,7 @@ printf "\nKubernetes installer for Linux\n"
 if $HELP
 then
     help
-    return 0
+    exit
 fi
 
 
@@ -430,21 +430,21 @@ if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
     printf "\nNO OPTIONS. Must be agent, server, apply or uninstall \n"
     help
-    return 2
+    exit
 fi
 
 if $UNINSTALL
 then
     printf "\nUninstalling Server\n"
     uninstall
-    return 0
+    exit
 fi
 
 if $AGENT && $SERVER
 then
     printf "\nCannot be both server and agent\n"
     help
-    return 2
+    exit
 fi
 
 if $AGENT || $SERVER || $INSTALL
