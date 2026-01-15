@@ -33,7 +33,7 @@ SERVER=false
 AGENT=false
 APPLY=false
 UNINSTALL=false
-K3S=true
+K3S=false
 HELP=false
 INSTALL=false
 
@@ -44,8 +44,6 @@ SYSTEMD_DIR=/etc/systemd/system
 
 INET="$(ip a | grep 'inet ' | grep -v 127 | awk '{print $2}' | sed 's:[/.]: :g')"
 EXT_NET=$( printf $INET | awk '{print $1 "." $2 "." $3 ".0/\n" $5}' )
-
-TOKEN=""
 
 #
 # CAN be set by ENV
@@ -167,7 +165,7 @@ function rmdirs(){
 
 function server(){
     dirs
-    if $KMNT; then
+    if $K3S; then
     server_k3s_install
     else
     server_k8s_install
@@ -176,7 +174,7 @@ function server(){
 
 function agent(){
     dirs
-    if $KMNT; then
+    if $K3S; then
     agent_k3s_install
     else
     agent_k8s_install
@@ -184,7 +182,7 @@ function agent(){
 }
 
 function uninstall(){
-    if $KMNT; then
+    if $K3S; then
     server_k3s_uninstall
     else
     server_k8s_uninstall
@@ -413,7 +411,7 @@ while getopts "$ARG_S" opt; do
         u) UNINSTALL=true ;;
         k) APPLY=true ;;
         I) INSTALL=true ;;
-        K) KMNT="k3s";K3S=true ;;
+        K) K3S=true ;;
         t) TOKEN=$OPTARG ;;
         m) MASTER=$OPTARG ;;
         *) HELP=true ;;
@@ -427,18 +425,19 @@ then
     return 0
 fi
 
-if $UNINSTALL
-then
-    printf "\nUninstalling Server\n"
-    uninstall
-    return 0
-fi
 
 if (! $AGENT) && (! $SERVER) && (! $UNINSTALL) && (! $APPLY)
 then
     printf "\nNO OPTIONS. Must be agent, server, apply or uninstall \n"
     help
     return 2
+fi
+
+if $UNINSTALL
+then
+    printf "\nUninstalling Server\n"
+    uninstall
+    return 0
 fi
 
 if $AGENT && $SERVER
